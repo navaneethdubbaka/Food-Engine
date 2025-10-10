@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill {{ bill.bill_number }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #000;
+            background: white;
+        }
+        
+        /* Thermal printer page size: 80mm width, auto height */
+        @page {
+            size: 80mm auto;
+            margin: 0;
+        }
+
+        .bill-container {
+            max-width: 300px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+        }
+        
+        .bill-header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .restaurant-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .restaurant-address {
+            font-size: 10px;
+            margin-bottom: 3px;
+        }
+        
+        .restaurant-phone {
+            font-size: 10px;
+        }
+        
+        .bill-info {
+            margin-bottom: 15px;
+        }
+        
+        .bill-number {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .bill-date {
+            font-size: 10px;
+            color: #666;
+        }
+        
+        .bill-items {
+            margin-bottom: 15px;
+        }
+        
+        .bill-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+        
+        .item-name {
+            flex: 1;
+        }
+        
+        .item-quantity {
+            margin: 0 5px;
+            font-weight: bold;
+        }
+        
+        .item-price {
+            font-weight: bold;
+            min-width: 50px;
+            text-align: right;
+        }
+        
+        .bill-totals {
+            border-top: 1px solid #000;
+            padding-top: 10px;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+        
+        .total-label {
+            font-weight: bold;
+        }
+        
+        .total-amount {
+            font-weight: bold;
+        }
+        
+        .final-total {
+            border-top: 2px solid #000;
+            padding-top: 5px;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+        
+        .bill-footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px dashed #000;
+        }
+        
+        .thank-you {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .footer-text {
+            font-size: 10px;
+            color: #666;
+        }
+        
+        .divider {
+            border-top: 1px dashed #000;
+            margin: 10px 0;
+        }
+        
+        /* Print styles */
+        @media print {
+            html, body {
+                margin: 0;
+                padding: 0;
+                width: 80mm; /* match @page width for consistent scaling */
+            }
+            
+            .bill-container {
+                width: 80mm;
+                margin: 0;
+                padding: 3mm; /* compact padding for thermal paper */
+                max-width: none;
+            }
+
+            /* Avoid splitting rows across pages on long bills */
+            .bill-item, .total-row, .bill-header, .bill-footer {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            
+            .no-print {
+                display: none !important;
+            }
+        }
+        
+        /* Print button styles */
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ff6b35;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        
+        .print-button:hover {
+            background: #e55a2b;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button no-print" style="left:20px; right:auto; background:#6c757d;" onclick="history.back()">
+        ← <span data-lang="common.back">Back</span>
+    </button>
+    <button class="print-button no-print" onclick="window.print()">
+        🖨️ Print Bill
+    </button>
+    
+    <div class="bill-container">
+        <!-- Restaurant Header -->
+        <div class="bill-header">
+            <div class="restaurant-name">{{ settings.restaurant_name }}</div>
+            {% if settings.restaurant_address %}
+            <div class="restaurant-address">{{ settings.restaurant_address }}</div>
+            {% endif %}
+            {% if settings.restaurant_phone %}
+            <div class="restaurant-phone">{{ settings.restaurant_phone }}</div>
+            {% endif %}
+        </div>
+        
+        <!-- Bill Information -->
+        <div class="bill-info">
+            <div class="bill-number">Bill #: {{ bill.bill_number }}</div>
+            <div class="bill-date">Date: {{ bill.created_at[:19] }}</div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <!-- Bill Items -->
+        <div class="bill-items">
+            {% for item in bill.bill_items %}
+            <div class="bill-item">
+                <div class="item-name">{{ item.name }}</div>
+                <div class="item-quantity">{{ item.quantity }}x</div>
+                <div class="item-price">₹{{ "%.2f"|format(item.price * item.quantity) }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="divider"></div>
+        
+        <!-- Bill Totals -->
+        <div class="bill-totals">
+            <div class="total-row">
+                <span class="total-label">Subtotal:</span>
+                <span class="total-amount">₹{{ "%.2f"|format(bill.subtotal) }}</span>
+            </div>
+            <div class="total-row">
+                <span class="total-label">Tax:</span>
+                <span class="total-amount">₹{{ "%.2f"|format(bill.tax_amount) }}</span>
+            </div>
+            <div class="total-row">
+                <span class="total-label">Service Charge:</span>
+                <span class="total-amount">₹{{ "%.2f"|format(bill.service_charge) }}</span>
+            </div>
+            <div class="total-row final-total">
+                <span class="total-label">TOTAL:</span>
+                <span class="total-amount">₹{{ "%.2f"|format(bill.total) }}</span>
+            </div>
+        </div>
+        
+        <!-- Bill Footer -->
+        <div class="bill-footer">
+            <div class="thank-you">Thank you for your visit!</div>
+            <div class="footer-text">
+                Please keep this receipt for your records
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Auto-print when page loads (optional)
+        // window.onload = function() {
+        //     window.print();
+        // }
+        
+        // Handle print dialog
+        window.addEventListener('beforeprint', function() {
+            document.querySelector('.print-button').style.display = 'none';
+        });
+        
+        window.addEventListener('afterprint', function() {
+            document.querySelector('.print-button').style.display = 'block';
+        });
+    </script>
+</body>
+</html>

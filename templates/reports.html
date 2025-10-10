@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - Restaurant Billing System{% endblock %}
+
+{% block content %}
+<div class="mb-3">
+    <button class="btn btn-outline-secondary" onclick="history.back()">
+        <i class="bi bi-arrow-left me-2"></i><span data-lang="common.back">Back</span>
+    </button>
+    <hr>
+  </div>
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-graph-up me-2"></i><span data-lang="reports.title">Sales Reports & Bills History</span></h2>
+            <div class="btn-group">
+                <button class="btn btn-outline-primary" onclick="exportCSV()">
+                    <i class="bi bi-download me-2"></i><span data-lang="reports.export_csv">Export CSV</span>
+                </button>
+                <button class="btn btn-outline-secondary" onclick="refreshReports()">
+                    <i class="bi bi-arrow-clockwise me-2"></i><span data-lang="reports.refresh">Refresh</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Month Filter -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title"><i class="bi bi-calendar3 me-2"></i><span data-lang="reports.filter_month">Filter by Month</span></h6>
+                        <form method="GET" action="{{ url_for('reports') }}">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <select name="month" class="form-select" onchange="this.form.submit()">
+                                        <option value="" data-lang="reports.all_months">All Months</option>
+                                        {% for month in available_months %}
+                                        <option value="{{ month }}" {% if selected_month == month %}selected{% endif %}>
+                                            {{ month }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="bi bi-search me-2"></i><span data-lang="reports.filter">Filter</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title"><i class="bi bi-info-circle me-2"></i><span data-lang="reports.filter_status">Filter Status</span></h6>
+                        <p class="mb-0">
+                            {% if selected_month %}
+                                <span data-lang="reports.showing_month">Showing bills for</span> <strong>{{ selected_month }}</strong>
+                            {% else %}
+                                <span data-lang="reports.showing_all">Showing <strong>all bills</strong></span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6 class="card-title">Total Bills</h6>
+                                <h3 class="mb-0">{{ bills|length }}</h3>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="bi bi-receipt" style="font-size: 2rem;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h6 class="card-title">Total Sales</h6>
+                                                <h3 class="mb-0">₹{{ "%.2f"|format(total_sales) }}</h3>
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="bi bi-currency-dollar" style="font-size: 2rem;"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-warning text-white">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                {% if selected_month %}
+                                                <h6 class="card-title">Monthly Sales</h6>
+                                                <h3 class="mb-0">₹{{ "%.2f"|format(monthly_sales) }}</h3>
+                                                {% else %}
+                                                <h6 class="card-title">Today's Sales</h6>
+                                                <h3 class="mb-0">₹{{ "%.2f"|format(today_sales) }}</h3>
+                                                {% endif %}
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="bi bi-calendar-day" style="font-size: 2rem;"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h6 class="card-title">Average Bill</h6>
+                                                <h3 class="mb-0">₹{{ "%.2f"|format(avg_bill) }}</h3>
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="bi bi-graph-up" style="font-size: 2rem;"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="date-from" class="form-label" data-lang="reports.from_date">From Date</label>
+                        <input type="date" class="form-control" id="date-from" onchange="filterBills()">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="date-to" class="form-label" data-lang="reports.to_date">To Date</label>
+                        <input type="date" class="form-control" id="date-to" onchange="filterBills()">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="bill-search" class="form-label" data-lang="reports.search_bill">Search Bill</label>
+                        <input type="text" class="form-control" id="bill-search" placeholder="Bill number..." onkeyup="filterBills()" data-lang="reports.bill_placeholder">
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                            <i class="bi bi-x-circle me-2"></i><span data-lang="reports.clear_filters">Clear Filters</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bills Table -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0" data-lang="reports.bills_history">Bills History</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if bills %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="bills-table">
+                        <thead>
+                            <tr>
+                                <th data-lang="reports.bill_number">Bill #</th>
+                                <th data-lang="reports.date_time">Date & Time</th>
+                                <th data-lang="reports.items">Items</th>
+                                <th data-lang="reports.subtotal">Subtotal</th>
+                                <th data-lang="reports.tax">Tax</th>
+                                <th data-lang="reports.service">Service</th>
+                                <th data-lang="reports.total">Total</th>
+                                <th data-lang="reports.actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bill in bills %}
+                            <tr data-bill-date="{{ bill.created_at[:10] }}" data-bill-number="{{ bill.bill_number }}">
+                                <td>
+                                    <strong>{{ bill.bill_number }}</strong>
+                                </td>
+                                <td>
+                                    <div>{{ bill.created_at[:10] }}</div>
+                                    <small class="text-muted">{{ bill.created_at[11:19] }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary">{{ bill.bill_items|length }} items</span>
+                                    <div class="mt-1">
+                                        {% for item in bill.bill_items[:2] %}
+                                        <small class="d-block">{{ item.name }} ({{ item.quantity }})</small>
+                                        {% endfor %}
+                                        {% if bill.bill_items|length > 2 %}
+                                        <small class="text-muted">+{{ bill.bill_items|length - 2 }} more</small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong>₹{{ "%.2f"|format(bill.subtotal) }}</strong>
+                                </td>
+                                <td>
+                                    ₹{{ "%.2f"|format(bill.tax_amount) }}
+                                </td>
+                                <td>
+                                    ₹{{ "%.2f"|format(bill.service_charge) }}
+                                </td>
+                                <td>
+                                    <strong class="text-success">₹{{ "%.2f"|format(bill.total) }}</strong>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-outline-primary btn-sm" 
+                                                onclick="viewBill('{{ bill.bill_number }}')"
+                                                data-bs-toggle="tooltip" title="View Bill" data-lang="reports.view">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary btn-sm" 
+                                                onclick="printBill('{{ bill.bill_number }}')"
+                                                data-bs-toggle="tooltip" title="Print Bill" data-lang="reports.print">
+                                            <i class="bi bi-printer"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-receipt text-muted" style="font-size: 4rem;"></i>
+                    <h4 class="text-muted mt-3" data-lang="reports.no_bills">No bills found</h4>
+                    <p class="text-muted" data-lang="reports.start_generating">Start generating bills to see them here.</p>
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="bi bi-plus me-2"></i><span data-lang="reports.create_first_bill">Create First Bill</span>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Initialize reports page
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Set default date range (last 30 days)
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+    
+    document.getElementById('date-from').value = thirtyDaysAgo.toISOString().split('T')[0];
+    document.getElementById('date-to').value = today.toISOString().split('T')[0];
+    
+    // Apply initial filter
+    filterBills();
+});
+
+// Filter bills based on date range and search
+function filterBills() {
+    const fromDate = document.getElementById('date-from').value;
+    const toDate = document.getElementById('date-to').value;
+    const searchTerm = document.getElementById('bill-search').value.toLowerCase();
+    
+    const rows = document.querySelectorAll('#bills-table tbody tr');
+    
+    rows.forEach(row => {
+        const billDate = row.getAttribute('data-bill-date');
+        const billNumber = row.getAttribute('data-bill-number').toLowerCase();
+        
+        let showRow = true;
+        
+        // Date filter
+        if (fromDate && billDate < fromDate) {
+            showRow = false;
+        }
+        if (toDate && billDate > toDate) {
+            showRow = false;
+        }
+        
+        // Search filter
+        if (searchTerm && !billNumber.includes(searchTerm)) {
+            showRow = false;
+        }
+        
+        row.style.display = showRow ? '' : 'none';
+    });
+}
+
+// Clear all filters
+function clearFilters() {
+    document.getElementById('date-from').value = '';
+    document.getElementById('date-to').value = '';
+    document.getElementById('bill-search').value = '';
+    filterBills();
+}
+
+// View bill details
+function viewBill(billNumber) {
+    window.open(`/bill/${billNumber}`, '_blank');
+}
+
+// Print bill
+function printBill(billNumber) {
+    const printWindow = window.open(`/bill/${billNumber}`, '_blank');
+    printWindow.onload = function() {
+        printWindow.print();
+    };
+}
+
+// Export CSV
+function exportCSV() {
+    const rows = document.querySelectorAll('#bills-table tbody tr:not([style*="display: none"])');
+    let csvContent = "Bill Number,Date,Time,Items,Subtotal,Tax,Service Charge,Total\n";
+    
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 7) {
+            const billNumber = cells[0].textContent.trim();
+            const dateTime = cells[1].textContent.trim().replace(/\n/g, ' ');
+            const items = cells[2].querySelector('.badge').textContent.trim();
+            const subtotal = cells[3].textContent.trim();
+            const tax = cells[4].textContent.trim();
+            const service = cells[5].textContent.trim();
+            const total = cells[6].textContent.trim();
+            
+            csvContent += `"${billNumber}","${dateTime}","${items}","${subtotal}","${tax}","${service}","${total}"\n`;
+        }
+    });
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bills_export_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    showAlert('CSV file downloaded successfully!', 'success');
+}
+
+// Refresh reports
+function refreshReports() {
+    location.reload();
+}
+</script>
+{% endblock %}

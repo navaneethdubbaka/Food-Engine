@@ -1,0 +1,39 @@
+# Python bytecode/cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.venv/
+.env/
+
+# Build/Distribution artifacts
+build/
+dist/
+*.spec
+RestaurantBilling_Distribution/
+
+# Logs and temp files
+*.log
+*.tmp
+*.temp
+
+# Tool caches
+.cache/
+.mypy_cache/
+.pytest_cache/
+
+# IDE/editor settings
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local databases
+database/*.db
+
+
