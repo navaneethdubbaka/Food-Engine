@@ -353,6 +353,28 @@ def settings():
     }
     return render_template('settings.html', settings=settings_data)
 
+@app.route('/api/all_menu_items')
+def get_all_menu_items():
+    """API endpoint to get all menu items for instant category switching"""
+    conn = sqlite3.connect('database/restaurant.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM menu ORDER BY category, name')
+    items = cursor.fetchall()
+    conn.close()
+    
+    result = []
+    for item in items:
+        result.append({
+            'id': item[0],
+            'name': item[1],
+            'category': item[2],
+            'price': item[3],
+            'image': item[4],
+            'description': item[5]
+        })
+    
+    return jsonify(result)
+
 @app.route('/api/menu_items/<category>')
 def get_menu_items_by_category(category):
     """API endpoint to get menu items by category"""

@@ -312,7 +312,7 @@ function clearFilters() {
 
 // View bill details
 function viewBill(billNumber) {
-    window.open(`/bill/${billNumber}`, '_blank');
+    window.location.href = `/bill/${billNumber}`;
 }
 
 // Print bill

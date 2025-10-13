@@ -40,6 +40,17 @@
             </h5>
         </div>
         <div class="menu-content">
+            <!-- Universal Search Bar -->
+            <div class="search-container mb-3">
+                <div class="search-bar">
+                    <i class="bi bi-search search-icon"></i>
+                    <input type="text" id="menu-search" class="search-input" placeholder="Search all menu items..." onkeyup="searchAllItems()">
+                    <button class="search-clear" id="search-clear" onclick="clearSearch()" style="display: none;">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            </div>
+            
             <div id="menu-items-container" class="menu-items-grid">
                 <div class="text-center py-5">
                     <i class="bi bi-hand-index text-muted" style="font-size: 3rem;"></i>
@@ -73,11 +84,11 @@
                 <span id="bill-subtotal">₹0.00</span>
             </div>
             <div class="bill-total-row">
-                <span><span data-lang="billing.tax">Tax</span> (<span id="tax-rate">10</span>%):</span>
+                <span><span data-lang="billing.tax">Tax</span> (<span id="tax-rate">0</span>%):</span>
                 <span id="bill-tax">₹0.00</span>
             </div>
             <div class="bill-total-row">
-                <span><span data-lang="billing.service_charge">Service Charge</span> (<span id="service-charge-rate">5</span>%):</span>
+                <span><span data-lang="billing.service_charge">Service Charge</span> (<span id="service-charge-rate">0</span>%):</span>
                 <span id="bill-service-charge">₹0.00</span>
             </div>
             <div class="bill-total-row bill-total-final">
@@ -94,6 +105,56 @@
             <button class="btn btn-outline-secondary w-100" onclick="clearBill()">
                 <i class="bi bi-arrow-clockwise me-2"></i><span data-lang="billing.clear_bill">Clear Bill</span>
             </button>
+        </div>
+    </div>
+</div>
+
+<!-- Bill Confirmation Modal -->
+<div class="modal fade" id="billConfirmationModal" tabindex="-1" aria-labelledby="billConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+                <h5 class="modal-title" id="billConfirmationModalLabel">
+                    <i class="bi bi-receipt-cutoff me-2"></i>Confirm Bill
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="bill-preview-content">
+                    <h6 class="text-center mb-3">Bill Summary</h6>
+                    <div id="modal-bill-items" class="mb-3">
+                        <!-- Bill items will be inserted here -->
+                    </div>
+                    <hr>
+                    <div class="bill-totals-preview">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal:</span>
+                            <strong id="modal-subtotal">₹0.00</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Tax (<span id="modal-tax-rate">0</span>%):</span>
+                            <strong id="modal-tax">₹0.00</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Service Charge (<span id="modal-service-rate">0</span>%):</span>
+                            <strong id="modal-service-charge">₹0.00</strong>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <h5>Total:</h5>
+                            <h5 class="text-primary" id="modal-total">₹0.00</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>No, Cancel
+                </button>
+                <button type="button" class="btn btn-primary" onclick="confirmPrintBill()">
+                    <i class="bi bi-printer me-2"></i>Yes, Print Bill
+                </button>
+            </div>
         </div>
     </div>
 </div>
