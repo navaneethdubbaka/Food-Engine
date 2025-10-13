@@ -3,102 +3,97 @@
 {% block title %}Billing - Restaurant Billing System{% endblock %}
 
 {% block content %}
-<div class="mb-3">
-    <button class="btn btn-outline-secondary" onclick="history.back()">
-        <i class="bi bi-arrow-left me-2"></i><span data-lang="common.back">Back</span>
-    </button>
-    <hr>
-  </div>
-<div class="row">
-    <!-- Menu Section -->
-    <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-menu-button-wide me-2"></i><span data-lang="billing.title">Menu Items</span>
-                </h5>
-            </div>
-            <div class="card-body">
-                <!-- Category Selection -->
-                <div class="mb-4">
-                    <h6 class="mb-3" data-lang="billing.select_category">Select Category:</h6>
-                    <div class="d-flex flex-wrap">
-                        {% for category in categories %}
-                        <div class="category-chip" onclick="selectCategory('{{ category }}')" data-lang="category.{{ category.lower().replace(' ', '_') }}">
-                            {{ category }}
-                        </div>
-                        {% endfor %}
-                        {% if not categories %}
-                        <div class="col-12 text-center py-4">
-                            <i class="bi bi-exclamation-circle text-muted" style="font-size: 3rem;"></i>
-                            <h5 class="text-muted mt-3">No categories available</h5>
-                            <p class="text-muted">Add some menu items to get started.</p>
-                            <a href="{{ url_for('menu_management') }}" class="btn btn-primary">
-                                <i class="bi bi-plus me-1"></i>Add Menu Items
-                            </a>
-                        </div>
-                        {% endif %}
-                    </div>
+<div class="billing-container">
+    <!-- Left Sidebar - Menu Categories -->
+    <div class="menu-sidebar">
+        <div class="sidebar-header">
+            <h5 class="mb-0">
+                <i class="bi bi-menu-button-wide me-2"></i><span data-lang="billing.title">Menu Categories</span>
+            </h5>
+        </div>
+        <div class="sidebar-content">
+            {% if categories %}
+            <div class="category-list">
+                {% for category in categories %}
+                <div class="category-item" onclick="selectCategory('{{ category }}')" data-lang="category.{{ category.lower().replace(' ', '_') }}">
+                    <span>{{ category }}</span>
                 </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="bi bi-exclamation-circle text-muted" style="font-size: 2rem;"></i>
+                <p class="text-muted mt-2 small">No categories available</p>
+                <a href="{{ url_for('menu_management') }}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus me-1"></i>Add Menu Items
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 
-                <!-- Menu Items Grid -->
-                <div id="menu-items-container" class="row">
-                    <div class="col-12 text-center py-5">
-                        <i class="bi bi-hand-index text-muted" style="font-size: 3rem;"></i>
-                        <h5 class="text-muted mt-3">Select a category to view menu items</h5>
-                        <p class="text-muted">Choose a category from above to start adding items to the bill.</p>
-                    </div>
+    <!-- Middle Section - Menu Items -->
+    <div class="menu-items-section">
+        <div class="menu-header">
+            <h5 class="mb-0">
+                <i class="bi bi-grid me-2"></i><span id="current-category-title">Select a Category</span>
+            </h5>
+        </div>
+        <div class="menu-content">
+            <div id="menu-items-container" class="menu-items-grid">
+                <div class="text-center py-5">
+                    <i class="bi bi-hand-index text-muted" style="font-size: 3rem;"></i>
+                    <h5 class="text-muted mt-3">Select a category to view menu items</h5>
+                    <p class="text-muted">Choose a category from the left sidebar to start adding items to the bill.</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Bill Section -->
-    <div class="col-lg-4">
-        <div class="bill-section">
-            <div class="bill-header">
-                <h5 class="mb-0">
-                    <i class="bi bi-receipt me-2"></i><span data-lang="billing.current_bill">Current Bill</span>
-                </h5>
-            </div>
+    <!-- Right Section - Bill Preview -->
+    <div class="bill-preview-section">
+        <div class="bill-header">
+            <h5 class="mb-0">
+                <i class="bi bi-receipt me-2"></i><span data-lang="billing.current_bill">Current Bill</span>
+            </h5>
+        </div>
 
-            <!-- Bill Items -->
-            <div id="bill-items" class="mb-3">
-                <div class="text-center text-muted py-4">
-                    <i class="bi bi-cart-x" style="font-size: 2rem;"></i>
-                    <p class="mt-2" data-lang="billing.no_items">No items in bill</p>
-                </div>
+        <!-- Bill Items -->
+        <div id="bill-items" class="bill-items-container">
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-cart-x" style="font-size: 2rem;"></i>
+                <p class="mt-2" data-lang="billing.no_items">No items in bill</p>
             </div>
+        </div>
 
-            <!-- Bill Totals -->
-            <div class="bill-totals">
-                <div class="bill-total-row">
-                    <span data-lang="billing.subtotal">Subtotal:</span>
-                    <span id="bill-subtotal">₹0.00</span>
-                </div>
-                <div class="bill-total-row">
-                    <span><span data-lang="billing.tax">Tax</span> (<span id="tax-rate">10</span>%):</span>
-                    <span id="bill-tax">₹0.00</span>
-                </div>
-                <div class="bill-total-row">
-                    <span><span data-lang="billing.service_charge">Service Charge</span> (<span id="service-charge-rate">5</span>%):</span>
-                    <span id="bill-service-charge">₹0.00</span>
-                </div>
-                <div class="bill-total-row bill-total-final">
-                    <span data-lang="billing.total">Total:</span>
-                    <span id="bill-total">₹0.00</span>
-                </div>
+        <!-- Bill Totals -->
+        <div class="bill-totals">
+            <div class="bill-total-row">
+                <span data-lang="billing.subtotal">Subtotal:</span>
+                <span id="bill-subtotal">₹0.00</span>
             </div>
+            <div class="bill-total-row">
+                <span><span data-lang="billing.tax">Tax</span> (<span id="tax-rate">10</span>%):</span>
+                <span id="bill-tax">₹0.00</span>
+            </div>
+            <div class="bill-total-row">
+                <span><span data-lang="billing.service_charge">Service Charge</span> (<span id="service-charge-rate">5</span>%):</span>
+                <span id="bill-service-charge">₹0.00</span>
+            </div>
+            <div class="bill-total-row bill-total-final">
+                <span data-lang="billing.total">Total:</span>
+                <span id="bill-total">₹0.00</span>
+            </div>
+        </div>
 
-            <!-- Bill Actions -->
-            <div class="d-grid gap-2 mt-4">
-                <button class="btn btn-primary btn-lg" onclick="generateBill()">
-                    <i class="bi bi-printer me-2"></i><span data-lang="billing.generate_bill">Generate Bill</span>
-                </button>
-                <button class="btn btn-outline-secondary" onclick="clearBill()">
-                    <i class="bi bi-arrow-clockwise me-2"></i><span data-lang="billing.clear_bill">Clear Bill</span>
-                </button>
-            </div>
+        <!-- Bill Actions -->
+        <div class="bill-actions">
+            <button class="btn btn-primary btn-lg w-100 mb-2" onclick="generateBill()">
+                <i class="bi bi-printer me-2"></i><span data-lang="billing.generate_bill">Generate Bill</span>
+            </button>
+            <button class="btn btn-outline-secondary w-100" onclick="clearBill()">
+                <i class="bi bi-arrow-clockwise me-2"></i><span data-lang="billing.clear_bill">Clear Bill</span>
+            </button>
         </div>
     </div>
 </div>

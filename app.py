@@ -1,9 +1,10 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, send_file
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, send_file, session
 import sqlite3
 import os
-from datetime import datetime
+from datetime import datetime, date
 import json
 from werkzeug.utils import secure_filename
+from functools import wraps
 
 app = Flask(__name__)
 app.secret_key = 'restaurant_billing_secret_key_2024'
@@ -19,6 +20,33 @@ os.makedirs('database', exist_ok=True)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Authentication functions
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        if session.get('role') != 'admin':
+            return redirect(url_for('unauthorized'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def user_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 def init_db():
     """Initialize the database with required tables"""
@@ -107,7 +135,85 @@ def set_setting(key, value):
     conn.commit()
     conn.close()
 
+# Authentication routes
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        role = request.form.get('role')
+        
+        # Simple authentication (in production, use proper password hashing)
+        if role == 'admin' and username == 'admin' and password == 'admin123':
+            session['user_id'] = 1
+            session['username'] = 'admin'
+            session['role'] = 'admin'
+            return jsonify({'success': True, 'redirect_url': url_for('index')})
+        elif role == 'user' and username == 'user' and password == 'user123':
+            session['user_id'] = 2
+            session['username'] = 'user'
+            session['role'] = 'user'
+            return jsonify({'success': True, 'redirect_url': url_for('user_dashboard')})
+        else:
+            return jsonify({'success': False, 'message': 'Invalid credentials'})
+    
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
+@app.route('/user_dashboard')
+@user_required
+def user_dashboard():
+    """User dashboard with limited access"""
+    return render_template('user_dashboard.html')
+
+@app.route('/unauthorized')
+def unauthorized():
+    """Unauthorized access page"""
+    return render_template('unauthorized.html')
+
+@app.route('/api/user_dashboard')
+@user_required
+def api_user_dashboard():
+    """API endpoint for user dashboard data"""
+    conn = sqlite3.connect('database/restaurant.db')
+    cursor = conn.cursor()
+    
+    # Get today's bills count and total revenue
+    today = date.today().strftime('%Y-%m-%d')
+    cursor.execute('''
+        SELECT COUNT(*), COALESCE(SUM(total_amount), 0) 
+        FROM bills 
+        WHERE DATE(created_at) = ?
+    ''', (today,))
+    
+    result = cursor.fetchone()
+    today_bills = result[0] if result else 0
+    total_revenue = result[1] if result else 0
+    
+    conn.close()
+    
+    return jsonify({
+        'success': True,
+        'today_bills': today_bills,
+        'total_revenue': total_revenue
+    })
+
 @app.route('/')
+def root():
+    """Root route - redirect to login or dashboard based on authentication"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    elif session.get('role') == 'admin':
+        return redirect(url_for('index'))
+    else:
+        return redirect(url_for('user_dashboard'))
+
+@app.route('/billing')
+@login_required
 def index():
     """Main billing page"""
     conn = sqlite3.connect('database/restaurant.db')
@@ -138,6 +244,7 @@ def index():
     return render_template('billing.html', categories=categories, menu_items=items)
 
 @app.route('/menu')
+@admin_required
 def menu_management():
     """Menu management page"""
     conn = sqlite3.connect('database/restaurant.db')
@@ -160,6 +267,7 @@ def menu_management():
     return render_template('menu.html', menu_items=items)
 
 @app.route('/reports')
+@admin_required
 def reports():
     """Reports and bills history page"""
     # Get month filter from request
@@ -233,6 +341,7 @@ def reports():
                          available_months=available_months)
 
 @app.route('/settings')
+@admin_required
 def settings():
     """Settings page"""
     settings_data = {

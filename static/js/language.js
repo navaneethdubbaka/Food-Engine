@@ -7,6 +7,7 @@ const languages = {
         'nav.menu': 'Menu',
         'nav.reports': 'Reports',
         'nav.settings': 'Settings',
+        'nav.dashboard': 'Dashboard',
         
         // Billing Page
         'billing.title': 'Menu Items',
@@ -114,6 +115,7 @@ const languages = {
         'nav.menu': 'మెనూ',
         'nav.reports': 'రిపోర్ట్లు',
         'nav.settings': 'సెట్టింగ్లు',
+        'nav.dashboard': 'డ్యాష్‌బోర్డ్',
         
         // Billing Page
         'billing.title': 'మెనూ అంశాలు',

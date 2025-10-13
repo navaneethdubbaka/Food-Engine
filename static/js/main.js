@@ -22,11 +22,26 @@ let currentCategory = '';
 function selectCategory(category) {
     currentCategory = category;
     
-    // Update active category chip
+    // Update active category items (both old and new layouts)
     document.querySelectorAll('.category-chip').forEach(chip => {
         chip.classList.remove('active');
     });
-    event.target.classList.add('active');
+    document.querySelectorAll('.category-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Add active class to clicked element
+    if (event.target.classList.contains('category-item')) {
+        event.target.classList.add('active');
+    } else if (event.target.closest('.category-item')) {
+        event.target.closest('.category-item').classList.add('active');
+    }
+    
+    // Update category title in middle section
+    const categoryTitle = document.getElementById('current-category-title');
+    if (categoryTitle) {
+        categoryTitle.textContent = category;
+    }
     
     // Load menu items for this category
     loadMenuItems(category);
@@ -69,25 +84,26 @@ async function loadMenuItems(category) {
 
 // Create menu item card
 function createMenuItemCard(item) {
-    const col = document.createElement('div');
-    col.className = 'col-md-4 col-lg-3 mb-4';
+    const card = document.createElement('div');
+    card.className = 'menu-item-card';
     
     const imageSrc = item.image ? `/static/images/${item.image}` : '/static/images/placeholder.svg';
     
-    col.innerHTML = `
-        <div class="menu-item-card" onclick="addToBill(${item.id}, '${item.name}', ${item.price}, '${item.image || ''}')">
-            <img src="${imageSrc}" 
-                 alt="${item.name}" class="menu-item-image" 
-                 onerror="this.src='/static/images/placeholder.svg'">
-            <div class="menu-item-info">
-                <div class="menu-item-name">${item.name}</div>
-                <div class="menu-item-price">₹${item.price.toFixed(2)}</div>
-                ${item.description ? `<div class="menu-item-description">${item.description}</div>` : ''}
-            </div>
+    card.innerHTML = `
+        <img src="${imageSrc}" 
+             alt="${item.name}" class="menu-item-image" 
+             onerror="this.src='/static/images/placeholder.svg'">
+        <div class="menu-item-info">
+            <div class="menu-item-name">${item.name}</div>
+            <div class="menu-item-price">₹${item.price.toFixed(2)}</div>
+            ${item.description ? `<div class="menu-item-description">${item.description}</div>` : ''}
         </div>
     `;
     
-    return col;
+    // Add click event
+    card.onclick = () => addToBill(item.id, item.name, item.price, item.image || '');
+    
+    return card;
 }
 
 // Add item to bill
@@ -122,20 +138,22 @@ function updateBillDisplay() {
         billContainer.innerHTML = `
             <div class="text-center text-muted py-4">
                 <i class="bi bi-cart-x" style="font-size: 2rem;"></i>
-                <p class="mt-2">No items in bill</p>
+                <p class="mt-2" data-lang="billing.no_items">No items in bill</p>
             </div>
         `;
-        subtotalElement.textContent = '₹0.00';
-        taxElement.textContent = '₹0.00';
-        serviceChargeElement.textContent = '₹0.00';
-        totalElement.textContent = '₹0.00';
+        if (subtotalElement) subtotalElement.textContent = '₹0.00';
+        if (taxElement) taxElement.textContent = '₹0.00';
+        if (serviceChargeElement) serviceChargeElement.textContent = '₹0.00';
+        if (totalElement) totalElement.textContent = '₹0.00';
         return;
     }
     
     // Calculate totals
     const subtotal = currentBill.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const taxRate = parseFloat(document.getElementById('tax-rate').textContent) || 10;
-    const serviceChargeRate = parseFloat(document.getElementById('service-charge-rate').textContent) || 5;
+    const taxRateElement = document.getElementById('tax-rate');
+    const serviceChargeRateElement = document.getElementById('service-charge-rate');
+    const taxRate = taxRateElement ? parseFloat(taxRateElement.textContent) || 10 : 10;
+    const serviceChargeRate = serviceChargeRateElement ? parseFloat(serviceChargeRateElement.textContent) || 5 : 5;
     
     const taxAmount = (subtotal * taxRate) / 100;
     const serviceCharge = (subtotal * serviceChargeRate) / 100;
@@ -149,10 +167,10 @@ function updateBillDisplay() {
     });
     
     // Update totals
-    subtotalElement.textContent = `₹${subtotal.toFixed(2)}`;
-    taxElement.textContent = `₹${taxAmount.toFixed(2)}`;
-    serviceChargeElement.textContent = `₹${serviceCharge.toFixed(2)}`;
-    totalElement.textContent = `₹${total.toFixed(2)}`;
+    if (subtotalElement) subtotalElement.textContent = `₹${subtotal.toFixed(2)}`;
+    if (taxElement) taxElement.textContent = `₹${taxAmount.toFixed(2)}`;
+    if (serviceChargeElement) serviceChargeElement.textContent = `₹${serviceCharge.toFixed(2)}`;
+    if (totalElement) totalElement.textContent = `₹${total.toFixed(2)}`;
 }
 
 // Create bill item element
