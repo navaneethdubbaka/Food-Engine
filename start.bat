@@ -1,5 +1,5 @@
 @echo off
-echo Starting Restaurant Billing System...
+echo Starting Sri Vengamamba Food Court...
 echo.
 python app.py
 pause

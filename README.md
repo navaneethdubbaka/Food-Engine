@@ -1,4 +1,4 @@
-# 🍽️ Restaurant Billing System
+# 🍽️ Sri Vengamamba Food Court
 
 A clean, fast, offline Flask-based billing system for restaurants that allows staff to select food items, generate bills, manage menu items, and view sales reports.
 
@@ -63,9 +63,9 @@ A clean, fast, offline Flask-based billing system for restaurants that allows st
    ```
 
 2. **Distribute:**
-   - Find the `RestaurantBilling_Distribution` folder
+   - Find the `SriVengamambaFoodCourt_Distribution` folder
    - Zip and share with users
-   - Users can run `RestaurantBilling.exe` directly
+   - Users can run `SriVengamambaFoodCourt.exe` directly
 
 ## 📁 Project Structure
 
@@ -232,7 +232,7 @@ The system is fully responsive and works on:
 ### 2. Executable Distribution
 - Run `python build_exe.py`
 - Distribute the generated folder
-- Users run `RestaurantBilling.exe`
+- Users run `SriVengamambaFoodCourt.exe`
 
 ### 3. Network Deployment
 - Run on server computer

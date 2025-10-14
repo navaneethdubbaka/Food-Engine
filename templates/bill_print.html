@@ -17,6 +17,23 @@
             line-height: 1.4;
             color: #000;
             background: white;
+            position: relative;
+        }
+        
+        /* Watermark for tamper-proofing */
+        body::before {
+            content: "AUTHENTIC BILL";
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 48px;
+            font-weight: bold;
+            color: rgba(0, 0, 0, 0.1);
+            z-index: -1;
+            pointer-events: none;
+            user-select: none;
+            white-space: nowrap;
         }
         
         /* Thermal printer page size: 80mm width, auto height */
@@ -28,34 +45,41 @@
         .bill-container {
             max-width: 300px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 10px;
             background: white;
+            position: relative;
+            z-index: 1;
         }
         
         .bill-header {
             text-align: center;
-            border-bottom: 2px solid #000;
-            padding-bottom: 15px;
-            margin-bottom: 15px;
+            border-bottom: 1px solid #000;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
         }
         
         .restaurant-name {
             font-size: 18px;
             font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .restaurant-address {
-            font-size: 10px;
             margin-bottom: 3px;
         }
         
         .restaurant-phone {
+            font-size: 12px;
+            margin-bottom: 2px;
+            color: #666;
+        }
+        
+        .restaurant-gst {
             font-size: 10px;
+            margin-bottom: 8px;
+            color: #666;
         }
         
         .bill-info {
-            margin-bottom: 15px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
         }
         
         .bill-number {
@@ -64,12 +88,41 @@
         }
         
         .bill-date {
-            font-size: 10px;
-            color: #666;
+            font-size: 12px;
+            color: #000;
         }
         
         .bill-items {
-            margin-bottom: 15px;
+            margin-bottom: 8px;
+        }
+        
+        .items-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            border-bottom: 1px solid #000;
+            padding-bottom: 4px;
+            margin-bottom: 8px;
+        }
+        
+        .header-item {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .header-qty {
+            width: 40px;
+            text-align: center;
+        }
+        
+        .header-price {
+            width: 60px;
+            text-align: right;
+        }
+        
+        .header-amt {
+            width: 80px;
+            text-align: right;
         }
         
         .bill-item {
@@ -81,22 +134,34 @@
         
         .item-name {
             flex: 1;
+            font-weight: bold;
+            font-size: 14px;
         }
         
         .item-quantity {
-            margin: 0 5px;
+            width: 40px;
+            text-align: center;
             font-weight: bold;
+            font-size: 14px;
         }
         
         .item-price {
-            font-weight: bold;
-            min-width: 50px;
+            width: 60px;
             text-align: right;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .item-amount {
+            width: 80px;
+            text-align: right;
+            font-weight: bold;
+            font-size: 14px;
         }
         
         .bill-totals {
             border-top: 1px solid #000;
-            padding-top: 10px;
+            padding-top: 6px;
         }
         
         .total-row {
@@ -115,26 +180,10 @@
         
         .final-total {
             border-top: 2px solid #000;
-            padding-top: 5px;
-            margin-top: 5px;
-            font-size: 14px;
-        }
-        
-        .bill-footer {
-            text-align: center;
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px dashed #000;
-        }
-        
-        .thank-you {
+            padding-top: 4px;
+            margin-top: 4px;
+            font-size: 16px;
             font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .footer-text {
-            font-size: 10px;
-            color: #666;
         }
         
         .divider {
@@ -147,17 +196,32 @@
             html, body {
                 margin: 0;
                 padding: 0;
-                width: 80mm; /* match @page width for consistent scaling */
+                width: 80mm;
             }
             
             .bill-container {
                 width: 80mm;
                 margin: 0;
-                padding: 3mm; /* compact padding for thermal paper */
+                padding: 2mm;
                 max-width: none;
             }
+            
+            /* Watermark for print */
+            body::before {
+                content: "AUTHENTIC BILL";
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(-45deg);
+                font-size: 60px;
+                font-weight: bold;
+                color: rgba(0, 0, 0, 0.15);
+                z-index: -1;
+                pointer-events: none;
+                user-select: none;
+                white-space: nowrap;
+            }
 
-            /* Avoid splitting rows across pages on long bills */
             .bill-item, .total-row, .bill-header, .bill-footer {
                 break-inside: avoid;
                 page-break-inside: avoid;
@@ -192,7 +256,7 @@
     <button class="print-button no-print" style="left:20px; right:auto; background:#6c757d;" onclick="history.back()">
         ← <span data-lang="common.back">Back</span>
     </button>
-    <button class="print-button no-print" onclick="window.print()">
+    <button class="print-button no-print" onclick="printBoth()">
         🖨️ Print Bill
     </button>
     
@@ -200,69 +264,69 @@
         <!-- Restaurant Header -->
         <div class="bill-header">
             <div class="restaurant-name">{{ settings.restaurant_name }}</div>
-            {% if settings.restaurant_address %}
-            <div class="restaurant-address">{{ settings.restaurant_address }}</div>
-            {% endif %}
             {% if settings.restaurant_phone %}
             <div class="restaurant-phone">{{ settings.restaurant_phone }}</div>
+            {% endif %}
+            {% if settings.restaurant_gst %}
+            <div class="restaurant-gst">GST: {{ settings.restaurant_gst }}</div>
             {% endif %}
         </div>
         
         <!-- Bill Information -->
         <div class="bill-info">
-            <div class="bill-number">Bill #: {{ bill.bill_number }}</div>
-            <div class="bill-date">Date: {{ bill.created_at[:19] }}</div>
+            <div class="bill-number">Bill No: {{ bill.bill_number }}</div>
+            <div class="bill-date">Date: <span id="bill-date">{{ bill.created_at[:10] }}</span></div>
         </div>
         
         <div class="divider"></div>
+        
+        <!-- Items Header -->
+        <div class="items-header">
+            <div class="header-item">Item</div>
+            <div class="header-qty">Qty</div>
+            <div class="header-price">Price</div>
+            <div class="header-amt">Amt</div>
+        </div>
         
         <!-- Bill Items -->
         <div class="bill-items">
             {% for item in bill.bill_items %}
             <div class="bill-item">
                 <div class="item-name">{{ item.name }}</div>
-                <div class="item-quantity">{{ item.quantity }}x</div>
-                <div class="item-price">₹{{ "%.2f"|format(item.price * item.quantity) }}</div>
+                <div class="item-quantity">{{ item.quantity }}</div>
+                <div class="item-price">₹{{ "%.2f"|format(item.price) }}</div>
+                <div class="item-amount">₹{{ "%.2f"|format(item.price * item.quantity) }}</div>
             </div>
             {% endfor %}
         </div>
         
         <div class="divider"></div>
         
-        <!-- Bill Totals -->
+        <!-- Bill Totals - Direct Total Only -->
         <div class="bill-totals">
-            <div class="total-row">
-                <span class="total-label">Subtotal:</span>
-                <span class="total-amount">₹{{ "%.2f"|format(bill.subtotal) }}</span>
-            </div>
-            <div class="total-row">
-                <span class="total-label">Tax:</span>
-                <span class="total-amount">₹{{ "%.2f"|format(bill.tax_amount) }}</span>
-            </div>
-            <div class="total-row">
-                <span class="total-label">Service Charge:</span>
-                <span class="total-amount">₹{{ "%.2f"|format(bill.service_charge) }}</span>
-            </div>
             <div class="total-row final-total">
                 <span class="total-label">TOTAL:</span>
                 <span class="total-amount">₹{{ "%.2f"|format(bill.total) }}</span>
             </div>
         </div>
-        
-        <!-- Bill Footer -->
-        <div class="bill-footer">
-            <div class="thank-you">Thank you for your visit!</div>
-            <div class="footer-text">
-                Please keep this receipt for your records
-            </div>
-        </div>
+
     </div>
     
     <script>
-        // Auto-print when page loads (optional)
-        // window.onload = function() {
-        //     window.print();
-        // }
+        // Set bill date to current local date
+        (function setCurrentBillDate(){
+            try {
+                var el = document.getElementById('bill-date');
+                if (el) {
+                    var now = new Date();
+                    var day = String(now.getDate()).padStart(2, '0');
+                    var month = String(now.getMonth() + 1).padStart(2, '0');
+                    var year = now.getFullYear();
+                    var formatted = day + '/' + month + '/' + year;
+                    el.textContent = formatted;
+                }
+            } catch(e) { /* ignore */ }
+        })();
         
         // Handle print dialog
         window.addEventListener('beforeprint', function() {
@@ -272,6 +336,23 @@
         window.addEventListener('afterprint', function() {
             document.querySelector('.print-button').style.display = 'block';
         });
+
+        // Print two copies: kitchen and student
+        function printBoth() {
+            try {
+                if ('{{ copy_type|default("student") }}' !== 'kitchen') {
+                    const url = window.location.pathname + '?copy=kitchen';
+                    const w = window.open(url, '_blank');
+                    if (w) {
+                        w.onload = function(){ try { w.print(); } catch(e) {} };
+                    }
+                    // Print current (student) after a short delay
+                    setTimeout(function(){ window.print(); }, 300);
+                } else {
+                    window.print();
+                }
+            } catch(e) { window.print(); }
+        }
     </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-# 🍽️ Restaurant Billing System - Project Summary
+# 🍽️ Sri Vengamamba Food Court - Project Summary
 
 ## ✅ Completed Features
 
@@ -235,6 +235,6 @@ restaurant_billing/
 
 ## 🏆 Project Status: COMPLETE
 
-The Restaurant Billing System is fully functional and ready for production use. All core features have been implemented, tested, and documented. The system provides a complete solution for restaurant billing needs with a focus on simplicity, reliability, and offline operation.
+The Sri Vengamamba Food Court is fully functional and ready for production use. All core features have been implemented, tested, and documented. The system provides a complete solution for restaurant billing needs with a focus on simplicity, reliability, and offline operation.
 
 **Ready to use!** 🚀

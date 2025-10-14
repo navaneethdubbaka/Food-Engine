@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Desktop Application Launcher for Restaurant Billing System
+Desktop Application Launcher for Sri Vengamamba Food Court
 Creates a standalone desktop application with embedded web interface
 """
 
@@ -17,10 +17,10 @@ import requests
 from tkinter import scrolledtext
 import queue
 
-class RestaurantBillingDesktopApp:
+class SriVengamambaFoodCourtDesktopApp:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("Restaurant Billing System")
+        self.root.title("Sri Vengamamba Food Court")
         self.root.geometry("1400x900")
         self.root.configure(bg='#f8f9fa')
         
@@ -47,7 +47,7 @@ class RestaurantBillingDesktopApp:
         header_frame.pack_propagate(False)
         
         # Title
-        title_label = tk.Label(header_frame, text="🍽️ Restaurant Billing System", 
+        title_label = tk.Label(header_frame, text="🍽️ Sri Vengamamba Food Court", 
                               font=('Arial', 24, 'bold'), fg='white', bg='#ff6b35')
         title_label.pack(pady=20)
         
@@ -69,13 +69,13 @@ class RestaurantBillingDesktopApp:
         
         # Instructions
         instructions = tk.Label(web_frame, 
-                              text="🌐 The Restaurant Billing System will open in your default web browser.\n"
+                              text="🌐 The Sri Vengamamba Food Court will open in your default web browser.\n"
                                    "Click the button below to open the application.",
                               font=('Arial', 14), bg='#f8f9fa', fg='#333', justify='center')
         instructions.pack(pady=50)
         
         # Open button
-        self.open_button = tk.Button(web_frame, text="🚀 Open Restaurant Billing System", 
+        self.open_button = tk.Button(web_frame, text="🚀 Open Sri Vengamamba Food Court", 
                                   command=self.open_application,
                                   font=('Arial', 16, 'bold'), 
                                   bg='#ff6b35', fg='white',
@@ -97,7 +97,7 @@ class RestaurantBillingDesktopApp:
         footer_frame.pack(fill='x', side='bottom')
         footer_frame.pack_propagate(False)
         
-        footer_text = tk.Label(footer_frame, text="© 2024 Restaurant Billing System - All Rights Reserved", 
+        footer_text = tk.Label(footer_frame, text="© 2024 Sri Vengamamba Food Court - All Rights Reserved", 
                               font=('Arial', 10), bg='#e9ecef', fg='#666')
         footer_text.pack(pady=10)
         
@@ -145,7 +145,7 @@ class RestaurantBillingDesktopApp:
             
     def show_error(self, error_msg):
         """Show error message"""
-        messagebox.showerror("Restaurant Billing System", 
+        messagebox.showerror("Sri Vengamamba Food Court", 
                            f"Failed to start application:\n{error_msg}\n\nPlease check if port 5000 is available.")
         self.root.quit()
         
@@ -162,7 +162,7 @@ class RestaurantBillingDesktopApp:
 def main():
     """Main function"""
     try:
-        app = RestaurantBillingDesktopApp()
+        app = SriVengamambaFoodCourtDesktopApp()
         app.root.mainloop()
     except Exception as e:
         messagebox.showerror("Error", f"Failed to start application: {str(e)}")

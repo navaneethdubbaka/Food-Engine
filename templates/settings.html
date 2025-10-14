@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Settings - Restaurant Billing System{% endblock %}
+{% block title %}Settings - Sri Vengamamba Food Court{% endblock %}
 
 {% block content %}
 <div class="mb-3">
@@ -8,7 +8,7 @@
         <i class="bi bi-arrow-left me-2"></i><span data-lang="common.back">Back</span>
     </button>
     <hr>
-  </div>
+</div>
 <div class="row">
     <div class="col-lg-8 mx-auto">
         <div class="card">
@@ -40,10 +40,22 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="restaurant-address" class="form-label" data-lang="settings.restaurant_address">Address</label>
-                            <textarea class="form-control" id="restaurant-address" name="restaurant_address" 
-                                      rows="2">{{ settings.restaurant_address }}</textarea>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="restaurant-address" class="form-label" data-lang="settings.restaurant_address">Address</label>
+                                    <textarea class="form-control" id="restaurant-address" name="restaurant_address" 
+                                              rows="2">{{ settings.restaurant_address }}</textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="restaurant-gst" class="form-label">GST Number</label>
+                                    <input type="text" class="form-control" id="restaurant-gst" name="restaurant_gst" 
+                                           value="{{ settings.restaurant_gst }}" placeholder="33AAAGP0685F1ZH">
+                                    <small class="text-muted">Enter your GST registration number</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -98,48 +110,50 @@
                                 <div class="mb-3">
                                     <label class="form-label">Current Language</label>
                                     <div class="input-group">
-                                        <span class="input-group-text">
-                                            <i class="bi bi-globe"></i>
-                                        </span>
-                                        <input type="text" class="form-control" id="current-language-display" value="English" readonly>
+                                        <input type="text" class="form-control" id="current-language-display" readonly>
                                     </div>
+                                    <small class="text-muted">Currently selected language</small>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- System Information -->
-                    <div class="mb-4">
+                    <!-- User Activity Logs -->
+                    <div class="mb-5">
                         <h6 class="text-primary mb-3">
-                            <i class="bi bi-info-circle me-2"></i>System Information
+                            <i class="bi bi-person-lines-fill me-2"></i>User Activity Logs
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <button type="button" class="btn btn-outline-secondary" onclick="viewUserLogs()">
+                                    <i class="bi bi-list-ul me-2"></i>View User Activity Logs
+                                </button>
+                                <small class="text-muted d-block mt-1">View login logs and user activities</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Database Management -->
+                    <div class="mb-5">
+                        <h6 class="text-primary mb-3">
+                            <i class="bi bi-database-gear me-2"></i>Database Management
                         </h6>
                         <div class="row">
                             <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Database Status</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">
-                                            <i class="bi bi-check-circle text-success"></i>
-                                        </span>
-                                        <input type="text" class="form-control" value="Connected" readonly>
-                                    </div>
-                                </div>
+                                <button type="button" class="btn btn-outline-info" onclick="checkDatabase()">
+                                    <i class="bi bi-shield-check me-2"></i>Check Database Status
+                                </button>
+                                <small class="text-muted d-block mt-1">Check and fix database lock issues</small>
                             </div>
                             <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Application Version</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">
-                                            <i class="bi bi-tag"></i>
-                                        </span>
-                                        <input type="text" class="form-control" value="v1.0.0" readonly>
-                                    </div>
-                                </div>
+                                <button type="button" class="btn btn-outline-success" onclick="testBillNumber()">
+                                    <i class="bi bi-receipt me-2"></i>Test Bill Number
+                                </button>
+                                <small class="text-muted d-block mt-1">Test new bill number format</small>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Action Buttons -->
                     <div class="d-flex justify-content-between">
                         <button type="button" class="btn btn-outline-secondary" onclick="resetSettings()">
                             <i class="bi bi-arrow-clockwise me-2"></i>Reset to Defaults
@@ -222,6 +236,7 @@ function resetSettings() {
         document.getElementById('restaurant-name').value = 'My Restaurant';
         document.getElementById('restaurant-phone').value = '+1-234-567-8900';
         document.getElementById('restaurant-address').value = '123 Main Street, City';
+        document.getElementById('restaurant-gst').value = '';
         document.getElementById('tax-rate').value = '10.0';
         document.getElementById('service-charge-rate').value = '5.0';
         
@@ -242,6 +257,120 @@ function testPrint() {
 // Create backup
 function createBackup() {
     showAlert('Backup feature coming soon!', 'info');
+}
+
+// View user logs
+async function viewUserLogs() {
+    try {
+        const response = await fetch('/api/user_logs');
+        const result = await response.json();
+        
+        if (result.success) {
+            // Create a modal to display logs
+            showUserLogsModal(result.login_logs, result.activity_logs);
+        } else {
+            showAlert('Failed to load user logs', 'error');
+        }
+    } catch (error) {
+        console.error('Error loading user logs:', error);
+        showAlert('Failed to load user logs', 'error');
+    }
+}
+
+// Show user logs modal
+function showUserLogsModal(loginLogs, activityLogs) {
+    // Create modal HTML
+    const modalHtml = `
+        <div class="modal fade" id="userLogsModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">User Activity Logs</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <ul class="nav nav-tabs" id="logsTab" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-logs" type="button">Login Logs</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity-logs" type="button">Activity Logs</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="logsTabContent">
+                            <div class="tab-pane fade show active" id="login-logs">
+                                <div class="table-responsive mt-3">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>User</th>
+                                                <th>Role</th>
+                                                <th>Login Time</th>
+                                                <th>Logout Time</th>
+                                                <th>Duration</th>
+                                                <th>IP Address</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${loginLogs.map(log => `
+                                                <tr>
+                                                    <td>${log.username}</td>
+                                                    <td><span class="badge bg-${log.role === 'admin' ? 'danger' : 'primary'}">${log.role}</span></td>
+                                                    <td>${new Date(log.login_time).toLocaleString()}</td>
+                                                    <td>${log.logout_time ? new Date(log.logout_time).toLocaleString() : 'Active'}</td>
+                                                    <td>${log.session_duration ? Math.floor(log.session_duration / 60) + ' min' : 'N/A'}</td>
+                                                    <td>${log.ip_address || 'N/A'}</td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="activity-logs">
+                                <div class="table-responsive mt-3">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>User</th>
+                                                <th>Activity</th>
+                                                <th>Description</th>
+                                                <th>Bill Number</th>
+                                                <th>Time</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${activityLogs.map(log => `
+                                                <tr>
+                                                    <td>${log.username}</td>
+                                                    <td><span class="badge bg-info">${log.activity_type}</span></td>
+                                                    <td>${log.activity_description}</td>
+                                                    <td>${log.bill_number || 'N/A'}</td>
+                                                    <td>${new Date(log.created_at).toLocaleString()}</td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if any
+    const existingModal = document.getElementById('userLogsModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('userLogsModal'));
+    modal.show();
 }
 
 // Initialize language settings
@@ -277,6 +406,55 @@ function switchLanguageFromSettings(lang) {
     // Show success message
     const message = lang === 'te' ? 'భాష మార్చబడింది!' : 'Language changed!';
     showAlert(message, 'success');
+}
+
+// Check database status
+async function checkDatabase() {
+    try {
+        showAlert('Checking database status...', 'info');
+        
+        const response = await fetch('/api/check_database');
+        const result = await response.json();
+        
+        if (result.success) {
+            showAlert('✅ ' + result.message, 'success');
+        } else {
+            showAlert('❌ ' + result.message, 'error');
+        }
+    } catch (error) {
+        console.error('Error checking database:', error);
+        showAlert('Failed to check database status', 'error');
+    }
+}
+
+// Test bill number generation
+async function testBillNumber() {
+    try {
+        showAlert('Testing bill number generation...', 'info');
+        
+        const response = await fetch('/api/test_bill_number');
+        const result = await response.json();
+        
+        if (result.success) {
+            const message = `Bill Number Format Test:\n\n` +
+                          `Sample Bill Number: ${result.sample_bill_number}\n` +
+                          `Prefix: ${result.prefix} (${result.prefix === 'F' ? 'Morning' : 'Afternoon'})\n` +
+                          `Date: ${result.date_str}\n` +
+                          `Sequence: ${result.next_seq}\n` +
+                          `Current Hour: ${result.current_hour}`;
+            
+            showAlert(message, 'success');
+            
+            // Test if the bill preview URL would work
+            const testUrl = `/bill/${result.sample_bill_number}`;
+            console.log('Test bill URL would be:', testUrl);
+        } else {
+            showAlert('❌ ' + result.message, 'error');
+        }
+    } catch (error) {
+        console.error('Error testing bill number:', error);
+        showAlert('Failed to test bill number generation', 'error');
+    }
 }
 </script>
 {% endblock %}

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Billing - Restaurant Billing System{% endblock %}
+{% block title %}Billing - Sri Vengamamba Food Court{% endblock %}
 
 {% block content %}
 <div class="billing-container">
@@ -115,7 +115,7 @@
         <div class="modal-content">
             <div class="modal-header" style="background-color: var(--primary-color); color: white;">
                 <h5 class="modal-title" id="billConfirmationModalLabel">
-                    <i class="bi bi-receipt-cutoff me-2"></i>Confirm Bill
+                    <i class="bi bi-receipt-cutoff me-2"></i>Confirm Bill & Show Preview
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -152,7 +152,7 @@
                     <i class="bi bi-x-circle me-2"></i>No, Cancel
                 </button>
                 <button type="button" class="btn btn-primary" onclick="confirmPrintBill()">
-                    <i class="bi bi-printer me-2"></i>Yes, Print Bill
+                    <i class="bi bi-eye me-2"></i>Yes, Show Preview
                 </button>
             </div>
         </div>

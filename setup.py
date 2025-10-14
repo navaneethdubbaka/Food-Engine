@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Setup script for Restaurant Billing System
+Setup script for Sri Vengamamba Food Court
 """
 
 import os
@@ -63,7 +63,7 @@ def download_bootstrap():
 
 def main():
     """Main setup process"""
-    print("🍽️  Restaurant Billing System Setup")
+    print("🍽️  Sri Vengamamba Food Court Setup")
     print("=" * 50)
     
     # Check Python version

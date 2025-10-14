@@ -1,4 +1,4 @@
-/* Custom CSS for Restaurant Billing System */
+/* Custom CSS for Sri Vengamamba Food Court */
 
 :root {
     /* Natural Forest Theme Colors */
@@ -201,6 +201,12 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+}
+
+/* Make all bill texts bold for better readability */
+.bill-preview-section,
+.bill-preview-section * {
+    font-weight: 700;
 }
 
 .bill-header {

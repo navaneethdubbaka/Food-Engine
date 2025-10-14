@@ -1,4 +1,4 @@
-// Main JavaScript for Restaurant Billing System
+// Main JavaScript for Sri Vengamamba Food Court
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize tooltips
@@ -381,14 +381,34 @@ async function confirmPrintBill() {
             // Show success message
             showAlert('Bill generated and saved successfully!', 'success');
             
-            // Open bill in same tab for printing
-            window.location.href = `/bill/${result.bill_number}`;
+            // Show bill preview instead of direct print
+            showBillPreview(result.bill_number);
         } else {
             showAlert(result.message, 'danger');
         }
     } catch (error) {
         console.error('Error generating bill:', error);
         showAlert('Error generating bill', 'danger');
+    }
+}
+
+// Show bill preview in a new window/tab
+function showBillPreview(billNumber) {
+    // Open bill preview in a new window
+    const previewWindow = window.open(`/bill/${billNumber}`, '_blank', 'width=400,height=600,scrollbars=yes,resizable=yes');
+    
+    if (previewWindow) {
+        // Focus the new window
+        previewWindow.focus();
+        
+        // Show message to user
+        showAlert('Bill preview opened in new window. You can print from there.', 'info');
+    } else {
+        // Fallback if popup is blocked
+        showAlert('Popup blocked. Opening bill preview in same tab.', 'warning');
+        setTimeout(() => {
+            window.location.href = `/bill/${billNumber}`;
+        }, 1000);
     }
 }
 
@@ -704,7 +724,7 @@ async function loadSettings() {
         // Update restaurant name in navbar
         const restaurantNameElement = document.getElementById('restaurant-name');
         if (restaurantNameElement) {
-            restaurantNameElement.textContent = settings.restaurant_name || 'Restaurant Billing';
+            restaurantNameElement.textContent = settings.restaurant_name || 'Sri Vengamamba Food Court';
         }
     } catch (error) {
         console.error('Error loading settings:', error);

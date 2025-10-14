@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Desktop Application Launcher for Restaurant Billing System
+Desktop Application Launcher for Sri Vengamamba Food Court
 Creates a standalone desktop application with embedded web interface
 """
 
@@ -37,7 +37,7 @@ def show_native_message(title: str, message: str) -> None:
         except Exception:
             pass
 
-class RestaurantBillingDesktopApp:
+class SriVengamambaFoodCourtDesktopApp:
     def __init__(self):
         self.flask_thread = None
         # Ensure cwd is the executable directory so Flask finds templates/static
@@ -90,7 +90,7 @@ class RestaurantBillingDesktopApp:
             # Create webview window
             log("Creating webview window...")
             webview.create_window(
-                title='Restaurant Billing System',
+                title='Sri Vengamamba Food Court',
                 url='http://127.0.0.1:5000',
                 width=1400,
                 height=900,
@@ -109,7 +109,7 @@ class RestaurantBillingDesktopApp:
         except Exception as e:
             log(f"Error creating desktop window: {e}")
             show_native_message(
-                "Restaurant Billing System",
+                "Sri Vengamamba Food Court",
                 "Failed to open desktop window.\n\n"
                 "This app uses Microsoft Edge WebView2 runtime to render the interface.\n"
                 "Please install 'Microsoft Edge WebView2 Runtime' and try again.\n\n"
@@ -131,7 +131,7 @@ def main():
     app = None
     try:
         # Create and run desktop app
-        app = RestaurantBillingDesktopApp()
+        app = SriVengamambaFoodCourtDesktopApp()
         
     except Exception as e:
         log(f"Failed to start application: {e}")

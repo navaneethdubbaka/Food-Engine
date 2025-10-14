@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Build script for creating executable from Restaurant Billing System
+Build script for creating executable from Sri Vengamamba Food Court
 """
 
 import os
@@ -60,7 +60,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='RestaurantBilling',
+    name='SriVengamambaFoodCourt',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -84,7 +84,7 @@ exe = EXE(
 
 def main():
     """Main build process"""
-    print("🏗️  Building Restaurant Billing System Executable")
+    print("🏗️  Building Sri Vengamamba Food Court Executable")
     print("=" * 50)
     
     # Check if we're in the right directory
@@ -103,9 +103,9 @@ def main():
     # Kill any running processes that might be using files
     print("🔄 Checking for running processes...")
     try:
-        subprocess.run(['taskkill', '/f', '/im', 'RestaurantBilling.exe'], 
+        subprocess.run(['taskkill', '/f', '/im', 'SriVengamambaFoodCourt.exe'], 
                       capture_output=True, shell=True)
-        print("✅ Killed any running RestaurantBilling processes")
+        print("✅ Killed any running SriVengamambaFoodCourt processes")
     except:
         pass
     
@@ -124,14 +124,14 @@ def main():
         sys.exit(1)
     
     # Create final distribution folder
-    dist_folder = Path("RestaurantBilling_Distribution")
+    dist_folder = Path("SriVengamambaFoodCourt_Distribution")
     if dist_folder.exists():
         try:
             shutil.rmtree(dist_folder)
         except PermissionError:
             print("⚠️  Warning: Cannot delete existing distribution folder (file may be in use)")
             print("🔄 Renaming existing folder and creating new one...")
-            backup_folder = Path("RestaurantBilling_Distribution_backup")
+            backup_folder = Path("SriVengamambaFoodCourt_Distribution_backup")
             if backup_folder.exists():
                 shutil.rmtree(backup_folder)
             dist_folder.rename(backup_folder)
@@ -140,9 +140,9 @@ def main():
     dist_folder.mkdir()
     
     # Copy executable
-    exe_path = Path("dist/RestaurantBilling.exe")
+    exe_path = Path("dist/SriVengamambaFoodCourt.exe")
     if exe_path.exists():
-        shutil.copy2(exe_path, dist_folder / "RestaurantBilling.exe")
+        shutil.copy2(exe_path, dist_folder / "SriVengamambaFoodCourt.exe")
         print("✅ Executable copied to distribution folder")
     else:
         print("❌ Executable not found in dist folder")
@@ -173,12 +173,12 @@ def main():
         print("✅ Templates folder copied")
     
     # Create README for distribution
-    readme_content = """# Restaurant Billing System
+    readme_content = """# Sri Vengamamba Food Court
 
 ## Quick Start
 
 ### Option 1: Desktop Application (Recommended)
-1. Double-click `RestaurantBilling.exe` to start the desktop application
+1. Double-click `SriVengamambaFoodCourt.exe` to start the desktop application
 2. The system will open as a standalone desktop window
 3. No web browser required - everything runs in the desktop app
 
@@ -210,7 +210,7 @@ def main():
 
 ## File Structure
 
-- `RestaurantBilling.exe` - Main desktop application (recommended)
+- `SriVengamambaFoodCourt.exe` - Main desktop application (recommended)
 - `start_app.vbs` - Silent launcher
 - `start_app.bat` - Batch launcher
 - `database/` - Contains your data (SQLite database)
@@ -251,11 +251,11 @@ All your data is stored locally and never leaves your computer.
     
     print("\n🎉 Build completed successfully!")
     print(f"📁 Distribution folder: {dist_folder.absolute()}")
-    print(f"🚀 Executable: {dist_folder / 'RestaurantBilling.exe'}")
+    print(f"🚀 Executable: {dist_folder / 'SriVengamambaFoodCourt.exe'}")
     print("\nTo distribute:")
     print(f"1. Zip the '{dist_folder}' folder")
     print("2. Share the zip file with users")
-    print("3. Users can extract and run RestaurantBilling.exe")
+    print("3. Users can extract and run SriVengamambaFoodCourt.exe")
 
 if __name__ == "__main__":
     main()

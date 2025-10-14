@@ -1,8 +1,8 @@
-// Language support for Restaurant Billing System
+// Language support for Sri Vengamamba Food Court
 const languages = {
     en: {
         // Navigation
-        'nav.restaurant_name': 'Restaurant Billing',
+        'nav.restaurant_name': 'Sri Vengamamba Food Court',
         'nav.billing': 'Billing',
         'nav.menu': 'Menu',
         'nav.reports': 'Reports',
@@ -93,7 +93,7 @@ const languages = {
         'menu.french_fries_desc': 'Crispy golden french fries',
         
         // Footer
-        'footer.copyright': '© 2024 Restaurant Billing System. All rights reserved.',
+        'footer.copyright': '© 2024 Sri Vengamamba Food Court. All rights reserved.',
         
         // Common
         'common.save': 'Save',

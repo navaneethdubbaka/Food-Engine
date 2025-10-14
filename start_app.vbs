@@ -1,2 +1,2 @@
 Set WshShell = CreateObject("WScript.Shell")
-WshShell.Run "RestaurantBilling.exe", 0, False
+WshShell.Run "SriVengamambaFoodCourt.exe", 0, False
