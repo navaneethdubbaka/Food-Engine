@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}User Dashboard - Sri Vengamamba Food Court{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="bi bi-speedometer2 me-2"></i>
+                    User Dashboard
+                </h2>
+                <div class="d-flex gap-2">
+                    <span class="badge bg-primary fs-6">
+                        <i class="bi bi-person me-1"></i>
+                        User Mode
+                    </span>
+                    <a href="/logout" class="btn btn-outline-danger">
+                        <i class="bi bi-box-arrow-right me-1"></i>
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">Today's Bills</h4>
+                            <h2 class="mb-0" id="todayBills">0</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-receipt" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">Total Revenue</h4>
+                            <h2 class="mb-0" id="totalRevenue">₹0.00</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-currency-rupee" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">Active Session</h4>
+                            <h2 class="mb-0" id="sessionTime">0 min</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-clock" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">Quick Actions</h4>
+                            <a href="/billing" class="btn btn-light btn-sm">
+                                <i class="bi bi-plus-circle me-1"></i>
+                                New Bill
+                            </a>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-lightning" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list-ul me-2"></i>
+                        Quick Access
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-calculator text-primary" style="font-size: 3rem;"></i>
+                                    <h5 class="card-title mt-3">Billing</h5>
+                                    <p class="card-text">Create and manage bills</p>
+                                    <a href="/billing" class="btn btn-primary">
+                                        <i class="bi bi-arrow-right me-1"></i>
+                                        Go to Billing
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-printer text-success" style="font-size: 3rem;"></i>
+                                    <h5 class="card-title mt-3">Print Bills</h5>
+                                    <p class="card-text">Print and manage bills</p>
+                                    <a href="/reports" class="btn btn-success">
+                                        <i class="bi bi-arrow-right me-1"></i>
+                                        View Reports
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <i class="bi bi-graph-up text-info" style="font-size: 3rem;"></i>
+                                    <h5 class="card-title mt-3">Today's Summary</h5>
+                                    <p class="card-text">View today's performance</p>
+                                    <button class="btn btn-info" onclick="showTodaySummary()">
+                                        <i class="bi bi-arrow-right me-1"></i>
+                                        View Summary
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Today's Summary Modal -->
+<div class="modal fade" id="todaySummaryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+                <h5 class="modal-title">
+                    <i class="bi bi-calendar-day me-2"></i>
+                    Today's Summary
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Bill Statistics</h6>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Total Bills:</span>
+                                <span class="badge bg-primary" id="modalTotalBills">0</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Total Revenue:</span>
+                                <span class="badge bg-success" id="modalTotalRevenue">₹0.00</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Average Bill:</span>
+                                <span class="badge bg-info" id="modalAvgBill">₹0.00</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Session Info</h6>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Login Time:</span>
+                                <span id="loginTime">-</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Session Duration:</span>
+                                <span id="sessionDuration">-</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Last Activity:</span>
+                                <span id="lastActivity">-</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let sessionStartTime = new Date();
+let lastActivityTime = new Date();
+
+// Update session time every minute
+setInterval(updateSessionTime, 60000);
+
+// Update last activity on any user interaction
+document.addEventListener('click', updateLastActivity);
+document.addEventListener('keypress', updateLastActivity);
+
+function updateSessionTime() {
+    const now = new Date();
+    const diffMs = now - sessionStartTime;
+    const diffMins = Math.floor(diffMs / 60000);
+    document.getElementById('sessionTime').textContent = diffMins + ' min';
+}
+
+function updateLastActivity() {
+    lastActivityTime = new Date();
+}
+
+function showTodaySummary() {
+    // Update modal content
+    document.getElementById('modalTotalBills').textContent = document.getElementById('todayBills').textContent;
+    document.getElementById('modalTotalRevenue').textContent = document.getElementById('totalRevenue').textContent;
+    document.getElementById('loginTime').textContent = sessionStartTime.toLocaleTimeString();
+    document.getElementById('lastActivity').textContent = lastActivityTime.toLocaleTimeString();
+    
+    const sessionDuration = Math.floor((new Date() - sessionStartTime) / 60000);
+    document.getElementById('sessionDuration').textContent = sessionDuration + ' minutes';
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('todaySummaryModal'));
+    modal.show();
+}
+
+// Load dashboard data
+async function loadDashboardData() {
+    try {
+        const response = await fetch('/api/user_dashboard');
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('todayBills').textContent = data.today_bills;
+            document.getElementById('totalRevenue').textContent = '₹' + data.total_revenue.toFixed(2);
+        }
+    } catch (error) {
+        console.error('Error loading dashboard data:', error);
+    }
+}
+
+// Load data on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardData();
+    updateSessionTime();
+});
+</script>
+{% endblock %}

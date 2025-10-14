@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Unauthorized Access - Sri Vengamamba Food Court{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center align-items-center min-vh-100">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-lg border-0">
+                <div class="card-header text-center" style="background-color: var(--danger-color); color: white;">
+                    <h4 class="mb-0">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Unauthorized Access
+                    </h4>
+                </div>
+                <div class="card-body p-4 text-center">
+                    <i class="bi bi-shield-x text-danger" style="font-size: 4rem;"></i>
+                    <h5 class="mt-3">Access Denied</h5>
+                    <p class="text-muted">You don't have permission to access this page.</p>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('user_dashboard') }}" class="btn btn-primary">
+                            <i class="bi bi-house me-2"></i>
+                            Go to Dashboard
+                        </a>
+                        <a href="{{ url_for('logout') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-box-arrow-right me-2"></i>
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.min-vh-100 {
+    min-height: 100vh;
+}
+
+.card {
+    border-radius: 12px;
+}
+</style>
+{% endblock %}

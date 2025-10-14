@@ -349,13 +349,19 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        role = request.form.get('role')
-        
+
+        # Determine role automatically (no role field in form)
+        detected_role = None
+        if username == 'admin' and password == 'admin123':
+            detected_role = 'admin'
+        elif username == 'user' and password == 'user123':
+            detected_role = 'user'
+
         # Debug logging
-        print(f"Login attempt - Username: {username}, Password: {password}, Role: {role}")
+        print(f"Login attempt - Username: {username}, RoleDetected: {detected_role}")
         
         # Simple authentication (in production, use proper password hashing)
-        if role == 'admin' and username == 'admin' and password == 'admin123':
+        if detected_role == 'admin':
             session['user_id'] = 1
             session['username'] = 'admin'
             session['role'] = 'admin'
@@ -371,7 +377,7 @@ def login():
                 print(f"Error logging admin login: {e}")
             
             return jsonify({'success': True, 'redirect_url': url_for('index')})
-        elif role == 'user' and username == 'user' and password == 'user123':
+        elif detected_role == 'user':
             session['user_id'] = 2
             session['username'] = 'user'
             session['role'] = 'user'
@@ -388,7 +394,7 @@ def login():
             
             return jsonify({'success': True, 'redirect_url': url_for('user_dashboard')})
         else:
-            print(f"Login failed - Username: {username}, Password: {password}, Role: {role}")
+            print(f"Login failed - Username: {username}")
             return jsonify({'success': False, 'message': 'Invalid credentials'})
     
     return render_template('login.html')
@@ -781,13 +787,21 @@ def generate_bill():
         service_charge = (subtotal * service_charge_rate) / 100
         total = subtotal + tax_amount + service_charge
         
-        # Generate bill number in new format: A/F + DD-MM-YYYY + / + sequence
+        # Generate bill number in new format: A/F/E + DD-MM-YYYY + / + sequence
         current_time = datetime.now()
         current_hour = current_time.hour
         today = date.today()
         
-        # Determine prefix: F for morning (before 10 AM), A for afternoon/evening
-        prefix = "F" if current_hour < 10 else "A"
+        # Determine prefix by time of day
+        # A: 00:00 - 12:59 (till 1 PM)
+        # F: 13:00 - 17:59 (1 PM to 6 PM)
+        # E: 18:00 - 23:59 (after 6 PM)
+        if current_hour < 13:
+            prefix = "A"
+        elif current_hour < 18:
+            prefix = "F"
+        else:
+            prefix = "E"
         
         # Format date as DD-MM-YYYY
         date_str = today.strftime('%d-%m-%Y')
@@ -807,8 +821,8 @@ def generate_bill():
         else:
             cursor.execute('INSERT INTO daily_sequence (seq_date, last_seq) VALUES (?, ?)', (today_str, next_seq))
         
-        # Create bill number in format: A/F + DD-MM-YYYY + / + sequence
-        # Examples: F15-12-2024/001, A15-12-2024/002, F16-12-2024/001
+        # Create bill number in format: A/F/E + DD-MM-YYYY + / + sequence
+        # Examples: A15-12-2024/001, F15-12-2024/002, E15-12-2024/003
         bill_number = f"{prefix}{date_str}/{next_seq:03d}"
         
         # Save to database

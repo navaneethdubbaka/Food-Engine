@@ -35,14 +35,7 @@
                             </div>
                         </div>
                         
-                        <div class="mb-3">
-                            <label for="role" class="form-label">Login As</label>
-                            <select class="form-select" id="role" name="role" required>
-                                <option value="">Select Role</option>
-                                <option value="admin">Admin</option>
-                                <option value="user">User</option>
-                            </select>
-                        </div>
+                        <!-- Role selection removed: role will be detected automatically on server -->
                         
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary btn-lg">
@@ -51,26 +44,7 @@
                             </button>
                         </div>
                         
-                        <!-- Debug buttons -->
-                        <div class="mt-2 d-flex gap-2">
-                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="testPasswordField()">
-                                Test Password Field
-                            </button>
-                            <button type="button" class="btn btn-outline-info btn-sm" onclick="testLoginConnection()">
-                                Test Connection
-                            </button>
-                        </div>
                     </form>
-                    
-                    <div class="mt-4">
-                        <div class="alert alert-info">
-                            <h6 class="alert-heading">Default Credentials:</h6>
-                            <small>
-                                <strong>Admin:</strong> admin / admin123<br>
-                                <strong>User:</strong> user / user123
-                            </small>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -193,53 +167,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Test function for password field
-function testPasswordField() {
-    const passwordField = document.getElementById('password');
-    if (passwordField) {
-        console.log('Password field found:', passwordField);
-        console.log('Password field disabled:', passwordField.disabled);
-        console.log('Password field readonly:', passwordField.readOnly);
-        console.log('Password field style:', passwordField.style.cssText);
-        
-        // Try to focus and set value
-        passwordField.focus();
-        passwordField.value = 'test123';
-        console.log('Password field value set to:', passwordField.value);
-        
-        // Check if we can type
-        passwordField.addEventListener('keydown', function(e) {
-            console.log('Key pressed in password field:', e.key);
-        });
-        
-        alert('Password field test completed. Check console for details.');
-    } else {
-        alert('Password field not found!');
-    }
-}
-
-// Test login connection
-async function testLoginConnection() {
-    try {
-        console.log('Testing login connection...');
-        const response = await fetch('/test-login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                test: 'connection',
-                timestamp: new Date().toISOString()
-            })
-        });
-        
-        const data = await response.json();
-        console.log('Test connection response:', data);
-        alert('Connection test: ' + (data.success ? 'SUCCESS' : 'FAILED') + '\nCheck console for details.');
-    } catch (error) {
-        console.error('Test connection error:', error);
-        alert('Connection test FAILED: ' + error.message);
-    }
-}
+// (Debug helper functions removed)
 </script>
 {% endblock %}

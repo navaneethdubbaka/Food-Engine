@@ -1,0 +1,245 @@
+{% extends "base_login.html" %}
+
+{% block title %}Login - Sri Vengamamba Food Court{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center align-items-center min-vh-100">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-lg border-0">
+                <div class="card-header text-center" style="background-color: var(--primary-color); color: white;">
+                    <h4 class="mb-0">
+                        <i class="bi bi-shield-lock me-2"></i>
+                        Sri Vengamamba Food Court
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" id="loginForm">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-person"></i>
+                                </span>
+                                <input type="text" class="form-control" id="username" name="username" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-lock"></i>
+                                </span>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="role" class="form-label">Login As</label>
+                            <select class="form-select" id="role" name="role" required>
+                                <option value="">Select Role</option>
+                                <option value="admin">Admin</option>
+                                <option value="user">User</option>
+                            </select>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>
+                                Login
+                            </button>
+                        </div>
+                        
+                        <!-- Debug buttons -->
+                        <div class="mt-2 d-flex gap-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="testPasswordField()">
+                                Test Password Field
+                            </button>
+                            <button type="button" class="btn btn-outline-info btn-sm" onclick="testLoginConnection()">
+                                Test Connection
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="mt-4">
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading">Default Credentials:</h6>
+                            <small>
+                                <strong>Admin:</strong> admin / admin123<br>
+                                <strong>User:</strong> user / user123
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.min-vh-100 {
+    min-height: 100vh;
+}
+
+.card {
+    border-radius: 12px;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(192, 99, 45, 0.25);
+}
+
+/* Ensure password field is interactive */
+#password {
+    pointer-events: auto !important;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+}
+
+/* Debug styling for password field */
+#password:focus {
+    outline: 2px solid #007bff !important;
+    outline-offset: 2px;
+}
+
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(192, 99, 45, 0.25);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    const passwordField = document.getElementById('password');
+    
+    // Debug: Check if elements exist
+    console.log('Login form:', loginForm);
+    console.log('Password field:', passwordField);
+    
+    // Test if password field is focusable
+    if (passwordField) {
+        passwordField.addEventListener('focus', function() {
+            console.log('Password field focused');
+        });
+        
+        passwordField.addEventListener('input', function() {
+            console.log('Password field input:', this.value);
+        });
+    }
+    
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Form submitted');
+            
+            const formData = new FormData(this);
+            const username = formData.get('username');
+            const password = formData.get('password');
+            const role = formData.get('role');
+            
+            console.log('Form data:', { username, password, role });
+            console.log('Username length:', username ? username.length : 'null');
+            console.log('Password length:', password ? password.length : 'null');
+            console.log('Role value:', role);
+            
+            // Check if form data is being collected correctly
+            if (!username || !password || !role) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            fetch('/login', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.success) {
+                    console.log('Login successful, redirecting to:', data.redirect_url);
+                    window.location.href = data.redirect_url;
+                } else {
+                    console.log('Login failed:', data.message);
+                    alert(data.message || 'Login failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Login failed. Please try again.');
+            });
+        });
+    }
+});
+
+// Test function for password field
+function testPasswordField() {
+    const passwordField = document.getElementById('password');
+    if (passwordField) {
+        console.log('Password field found:', passwordField);
+        console.log('Password field disabled:', passwordField.disabled);
+        console.log('Password field readonly:', passwordField.readOnly);
+        console.log('Password field style:', passwordField.style.cssText);
+        
+        // Try to focus and set value
+        passwordField.focus();
+        passwordField.value = 'test123';
+        console.log('Password field value set to:', passwordField.value);
+        
+        // Check if we can type
+        passwordField.addEventListener('keydown', function(e) {
+            console.log('Key pressed in password field:', e.key);
+        });
+        
+        alert('Password field test completed. Check console for details.');
+    } else {
+        alert('Password field not found!');
+    }
+}
+
+// Test login connection
+async function testLoginConnection() {
+    try {
+        console.log('Testing login connection...');
+        const response = await fetch('/test-login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                test: 'connection',
+                timestamp: new Date().toISOString()
+            })
+        });
+        
+        const data = await response.json();
+        console.log('Test connection response:', data);
+        alert('Connection test: ' + (data.success ? 'SUCCESS' : 'FAILED') + '\nCheck console for details.');
+    } catch (error) {
+        console.error('Test connection error:', error);
+        alert('Connection test FAILED: ' + error.message);
+    }
+}
+</script>
+{% endblock %}

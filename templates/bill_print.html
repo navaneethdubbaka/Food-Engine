@@ -20,21 +20,7 @@
             position: relative;
         }
         
-        /* Watermark for tamper-proofing */
-        body::before {
-            content: "AUTHENTIC BILL";
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-45deg);
-            font-size: 48px;
-            font-weight: bold;
-            color: rgba(0, 0, 0, 0.1);
-            z-index: -1;
-            pointer-events: none;
-            user-select: none;
-            white-space: nowrap;
-        }
+        /* Watermark removed */
         
         /* Thermal printer page size: 80mm width, auto height */
         @page {
@@ -49,6 +35,17 @@
             background: white;
             position: relative;
             z-index: 1;
+        }
+        
+        .copy-label {
+            text-align: center;
+            font-size: 10px;
+            color: #555;
+            margin-bottom: 6px;
+        }
+        
+        .page-break {
+            page-break-after: always;
         }
         
         .bill-header {
@@ -206,21 +203,7 @@
                 max-width: none;
             }
             
-            /* Watermark for print */
-            body::before {
-                content: "AUTHENTIC BILL";
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%) rotate(-45deg);
-                font-size: 60px;
-                font-weight: bold;
-                color: rgba(0, 0, 0, 0.15);
-                z-index: -1;
-                pointer-events: none;
-                user-select: none;
-                white-space: nowrap;
-            }
+            /* Watermark removed for print */
 
             .bill-item, .total-row, .bill-header, .bill-footer {
                 break-inside: avoid;
@@ -256,11 +239,64 @@
     <button class="print-button no-print" style="left:20px; right:auto; background:#6c757d;" onclick="history.back()">
         ← <span data-lang="common.back">Back</span>
     </button>
-    <button class="print-button no-print" onclick="printBoth()">
-        🖨️ Print Bill
-    </button>
+    <button class="print-button no-print" onclick="window.print()">🖨️ Print Bill</button>
     
+    <div class="bill-container page-break">
+        <div class="copy-label">Customer Copy</div>
+        <!-- Restaurant Header -->
+        <div class="bill-header">
+            <div class="restaurant-name">{{ settings.restaurant_name }}</div>
+            {% if settings.restaurant_phone %}
+            <div class="restaurant-phone">{{ settings.restaurant_phone }}</div>
+            {% endif %}
+            {% if settings.restaurant_gst %}
+            <div class="restaurant-gst">GST: {{ settings.restaurant_gst }}</div>
+            {% endif %}
+        </div>
+        
+        <!-- Bill Information -->
+        <div class="bill-info">
+            <div class="bill-number">Bill No: {{ bill.bill_number }}</div>
+            <div class="bill-date">Date: <span id="bill-date">{{ bill.created_at[:10] }}</span></div>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <!-- Items Header -->
+        <div class="items-header">
+            <div class="header-item">Item</div>
+            <div class="header-qty">Qty</div>
+            <div class="header-price">Price</div>
+            <div class="header-amt">Amt</div>
+        </div>
+        
+        <!-- Bill Items -->
+        <div class="bill-items">
+            {% for item in bill.bill_items %}
+            <div class="bill-item">
+                <div class="item-name">{{ item.name }}</div>
+                <div class="item-quantity">{{ item.quantity }}</div>
+                <div class="item-price">₹{{ "%.2f"|format(item.price) }}</div>
+                <div class="item-amount">₹{{ "%.2f"|format(item.price * item.quantity) }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="divider"></div>
+        
+        <!-- Bill Totals - Direct Total Only -->
+        <div class="bill-totals">
+            <div class="total-row final-total">
+                <span class="total-label">TOTAL:</span>
+                <span class="total-amount">₹{{ "%.2f"|format(bill.total) }}</span>
+            </div>
+        </div>
+
+    </div>
+    
+    <!-- Second copy in same print job for auto-cut -->
     <div class="bill-container">
+        <div class="copy-label">Kitchen Copy</div>
         <!-- Restaurant Header -->
         <div class="bill-header">
             <div class="restaurant-name">{{ settings.restaurant_name }}</div>
@@ -337,22 +373,7 @@
             document.querySelector('.print-button').style.display = 'block';
         });
 
-        // Print two copies: kitchen and student
-        function printBoth() {
-            try {
-                if ('{{ copy_type|default("student") }}' !== 'kitchen') {
-                    const url = window.location.pathname + '?copy=kitchen';
-                    const w = window.open(url, '_blank');
-                    if (w) {
-                        w.onload = function(){ try { w.print(); } catch(e) {} };
-                    }
-                    // Print current (student) after a short delay
-                    setTimeout(function(){ window.print(); }, 300);
-                } else {
-                    window.print();
-                }
-            } catch(e) { window.print(); }
-        }
+        // Two copies are rendered in one print job with a page break for auto-cut
     </script>
 </body>
 </html>

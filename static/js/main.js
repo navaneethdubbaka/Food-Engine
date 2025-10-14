@@ -354,8 +354,8 @@ async function generateBill() {
     modal.show();
 }
 
-// Confirm and print bill
-async function confirmPrintBill() {
+// Confirm and print bill (direct print)
+async function confirmAndPrintBill() {
     try {
         const response = await fetch('/api/generate_bill', {
             method: 'POST',
@@ -381,8 +381,28 @@ async function confirmPrintBill() {
             // Show success message
             showAlert('Bill generated and saved successfully!', 'success');
             
-            // Show bill preview instead of direct print
-            showBillPreview(result.bill_number);
+            // Open bill and trigger print
+            const printWindow = window.open(`/bill/${result.bill_number}`, '_blank', 'width=400,height=600,scrollbars=yes,resizable=yes');
+            if (printWindow) {
+                const triggerPrint = () => {
+                    try {
+                        printWindow.focus();
+                        printWindow.print();
+                    } catch (e) {
+                        console.warn('Auto-print failed, user can print manually.');
+                    }
+                };
+                // If the document is already loaded
+                if (printWindow.document && printWindow.document.readyState === 'complete') {
+                    triggerPrint();
+                } else {
+                    printWindow.onload = triggerPrint;
+                }
+            } else {
+                // Fallback if popup blocked - navigate and print
+                window.location.href = `/bill/${result.bill_number}`;
+                // Cannot auto-print reliably when navigating same tab; user can press Ctrl+P
+            }
         } else {
             showAlert(result.message, 'danger');
         }
