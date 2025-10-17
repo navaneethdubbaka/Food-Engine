@@ -44,6 +44,7 @@
                             </button>
                         </div>
                         
+                        
                     </form>
                 </div>
             </div>
@@ -99,6 +100,8 @@
 
 {% block scripts %}
 <script>
+// Cache buster - Template updated at: {{ moment().format('YYYY-MM-DD HH:mm:ss') if moment else '2024-01-01 00:00:00' }}
+console.log('Login template loaded - Version 2.1 - No role validation');
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('loginForm');
@@ -107,6 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Debug: Check if elements exist
     console.log('Login form:', loginForm);
     console.log('Password field:', passwordField);
+    console.log('Using MAIN templates/login.html - Template version: 2.0');
     
     // Test if password field is focusable
     if (passwordField) {
@@ -117,6 +121,10 @@ document.addEventListener('DOMContentLoaded', function() {
         passwordField.addEventListener('input', function() {
             console.log('Password field input:', this.value);
         });
+        
+        // Test form field values on page load
+        console.log('Initial username value:', document.getElementById('username').value);
+        console.log('Initial password value:', document.getElementById('password').value);
     }
     
     if (loginForm) {
@@ -127,18 +135,29 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData(this);
             const username = formData.get('username');
             const password = formData.get('password');
-            const role = formData.get('role');
             
-            console.log('Form data:', { username, password, role });
-            console.log('Username length:', username ? username.length : 'null');
-            console.log('Password length:', password ? password.length : 'null');
-            console.log('Role value:', role);
+            // Trim whitespace and check for empty values
+            const trimmedUsername = username ? username.trim() : '';
+            const trimmedPassword = password ? password.trim() : '';
             
-            // Check if form data is being collected correctly
-            if (!username || !password || !role) {
+            console.log('Form data:', { username, password });
+            console.log('Trimmed data:', { trimmedUsername, trimmedPassword });
+            console.log('Username length:', trimmedUsername.length);
+            console.log('Password length:', trimmedPassword.length);
+            
+            // Check if form data is being collected correctly - NEW VALIDATION
+            const isUsernameValid = trimmedUsername && trimmedUsername.length > 0;
+            const isPasswordValid = trimmedPassword && trimmedPassword.length > 0;
+            
+            console.log('Validation check - Username valid:', isUsernameValid, 'Password valid:', isPasswordValid);
+            
+            if (!isUsernameValid || !isPasswordValid) {
+                console.log('Validation failed - Username:', trimmedUsername, 'Password:', trimmedPassword);
                 alert('Please fill in all fields');
                 return;
             }
+            
+            console.log('Validation passed, sending request...');
             
             fetch('/login', {
                 method: 'POST',
@@ -167,6 +186,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// (Debug helper functions removed)
 </script>
 {% endblock %}

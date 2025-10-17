@@ -381,28 +381,8 @@ async function confirmAndPrintBill() {
             // Show success message
             showAlert('Bill generated and saved successfully!', 'success');
             
-            // Open bill and trigger print
-            const printWindow = window.open(`/bill/${result.bill_number}`, '_blank', 'width=400,height=600,scrollbars=yes,resizable=yes');
-            if (printWindow) {
-                const triggerPrint = () => {
-                    try {
-                        printWindow.focus();
-                        printWindow.print();
-                    } catch (e) {
-                        console.warn('Auto-print failed, user can print manually.');
-                    }
-                };
-                // If the document is already loaded
-                if (printWindow.document && printWindow.document.readyState === 'complete') {
-                    triggerPrint();
-                } else {
-                    printWindow.onload = triggerPrint;
-                }
-            } else {
-                // Fallback if popup blocked - navigate and print
-                window.location.href = `/bill/${result.bill_number}`;
-                // Cannot auto-print reliably when navigating same tab; user can press Ctrl+P
-            }
+            // Directly print two separate copies (Customer then Kitchen) as separate print jobs
+            printCopiesSequentially(result.bill_number);
         } else {
             showAlert(result.message, 'danger');
         }
@@ -410,6 +390,56 @@ async function confirmAndPrintBill() {
         console.error('Error generating bill:', error);
         showAlert('Error generating bill', 'danger');
     }
+}
+
+// Print two copies in sequence to trigger auto-cutter between jobs
+async function printCopiesSequentially(billNumber) {
+    try {
+        await printSingleCopy(`/bill/${billNumber}?copy=customer`);
+        // Small delay to ensure the printer finishes the first job
+        await new Promise(r => setTimeout(r, 500));
+        await printSingleCopy(`/bill/${billNumber}?copy=kitchen`);
+    } catch (e) {
+        console.warn('Printing copies encountered an issue:', e);
+    }
+}
+
+function printSingleCopy(url) {
+    return new Promise((resolve) => {
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0';
+        iframe.style.bottom = '0';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = '0';
+        iframe.src = url;
+        document.body.appendChild(iframe);
+        
+        const cleanup = () => {
+            setTimeout(() => {
+                try { iframe.parentNode && iframe.parentNode.removeChild(iframe); } catch (_) {}
+                resolve();
+            }, 500);
+        };
+        
+        iframe.onload = () => {
+            try {
+                iframe.contentWindow.focus();
+                // Some browsers support afterprint on the iframe's window
+                const w = iframe.contentWindow;
+                const done = () => { w.removeEventListener && w.removeEventListener('afterprint', done); cleanup(); };
+                if (w.addEventListener) {
+                    w.addEventListener('afterprint', done);
+                }
+                w.print();
+                // Fallback cleanup in case afterprint doesn't fire
+                setTimeout(cleanup, 3000);
+            } catch (_) {
+                cleanup();
+            }
+        };
+    });
 }
 
 // Show bill preview in a new window/tab

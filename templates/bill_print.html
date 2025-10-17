@@ -188,6 +188,12 @@
             margin: 10px 0;
         }
         
+        /* Explicit page break helper for thermal printers */
+        .page-break {
+            page-break-after: always;           /* Legacy */
+            break-after: page;                  /* Modern */
+        }
+        
         /* Print styles */
         @media print {
             html, body {
@@ -212,6 +218,19 @@
             
             .no-print {
                 display: none !important;
+            }
+
+            /* Strengthen the page break enforcement for copy separation */
+            .page-break {
+                page-break-after: always !important;   /* Legacy */
+                break-after: page !important;          /* Modern */
+            }
+            .page-break::after {
+                content: '';
+                display: block;
+                height: 0;
+                page-break-after: always;              /* Some engines respect only on pseudo */
+                break-after: page;
             }
         }
         
@@ -241,8 +260,8 @@
     </button>
     <button class="print-button no-print" onclick="window.print()">🖨️ Print Bill</button>
     
-    <div class="bill-container page-break">
-        <div class="copy-label">Customer Copy</div>
+    <div class="bill-container">
+        <div class="copy-label">{{ 'Customer Copy' if copy_type != 'kitchen' else 'Kitchen Copy' }}</div>
         <!-- Restaurant Header -->
         <div class="bill-header">
             <div class="restaurant-name">{{ settings.restaurant_name }}</div>
@@ -294,59 +313,7 @@
 
     </div>
     
-    <!-- Second copy in same print job for auto-cut -->
-    <div class="bill-container">
-        <div class="copy-label">Kitchen Copy</div>
-        <!-- Restaurant Header -->
-        <div class="bill-header">
-            <div class="restaurant-name">{{ settings.restaurant_name }}</div>
-            {% if settings.restaurant_phone %}
-            <div class="restaurant-phone">{{ settings.restaurant_phone }}</div>
-            {% endif %}
-            {% if settings.restaurant_gst %}
-            <div class="restaurant-gst">GST: {{ settings.restaurant_gst }}</div>
-            {% endif %}
-        </div>
-        
-        <!-- Bill Information -->
-        <div class="bill-info">
-            <div class="bill-number">Bill No: {{ bill.bill_number }}</div>
-            <div class="bill-date">Date: <span id="bill-date">{{ bill.created_at[:10] }}</span></div>
-        </div>
-        
-        <div class="divider"></div>
-        
-        <!-- Items Header -->
-        <div class="items-header">
-            <div class="header-item">Item</div>
-            <div class="header-qty">Qty</div>
-            <div class="header-price">Price</div>
-            <div class="header-amt">Amt</div>
-        </div>
-        
-        <!-- Bill Items -->
-        <div class="bill-items">
-            {% for item in bill.bill_items %}
-            <div class="bill-item">
-                <div class="item-name">{{ item.name }}</div>
-                <div class="item-quantity">{{ item.quantity }}</div>
-                <div class="item-price">₹{{ "%.2f"|format(item.price) }}</div>
-                <div class="item-amount">₹{{ "%.2f"|format(item.price * item.quantity) }}</div>
-            </div>
-            {% endfor %}
-        </div>
-        
-        <div class="divider"></div>
-        
-        <!-- Bill Totals - Direct Total Only -->
-        <div class="bill-totals">
-            <div class="total-row final-total">
-                <span class="total-label">TOTAL:</span>
-                <span class="total-amount">₹{{ "%.2f"|format(bill.total) }}</span>
-            </div>
-        </div>
-
-    </div>
+    
     
     <script>
         // Set bill date to current local date
