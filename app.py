@@ -4,6 +4,7 @@ import os
 from datetime import datetime, date
 import json
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import threading
 import time
@@ -236,6 +237,18 @@ def init_db():
         )
     ''')
     
+    # Users table for proper user management
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            role TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
     # Insert default settings if not exists
     default_settings = [
         ('tax_rate', '10.0'),
@@ -248,6 +261,20 @@ def init_db():
     
     for key, value in default_settings:
         cursor.execute('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)', (key, value))
+    
+    # Insert default users if not exists
+    default_users = [
+        ('admin', 'admin123', 'admin'),
+        ('user', 'user123', 'user')
+    ]
+    
+    for username, password, role in default_users:
+        # Check if user already exists
+        cursor.execute('SELECT id FROM users WHERE username = ?', (username,))
+        if not cursor.fetchone():
+            password_hash = generate_password_hash(password)
+            cursor.execute('INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)', 
+                         (username, password_hash, role))
     
     conn.commit()
     conn.close()
@@ -343,6 +370,55 @@ def log_user_activity(username, activity_type, description, bill_number=None):
         print(f"Error logging user activity: {e}")
         return False
 
+def authenticate_user(username, password):
+    """Authenticate user with database"""
+    def _authenticate(conn):
+        cursor = conn.cursor()
+        cursor.execute('SELECT id, username, password_hash, role FROM users WHERE username = ?', (username,))
+        user = cursor.fetchone()
+        
+        if user and check_password_hash(user[2], password):
+            return {
+                'id': user[0],
+                'username': user[1],
+                'role': user[3]
+            }
+        return None
+    
+    try:
+        return safe_db_operation(_authenticate)
+    except Exception as e:
+        print(f"Error authenticating user: {e}")
+        return None
+
+def change_user_password(username, old_password, new_password):
+    """Change user password"""
+    def _change_password(conn):
+        cursor = conn.cursor()
+        
+        # First verify the old password
+        cursor.execute('SELECT password_hash FROM users WHERE username = ?', (username,))
+        user = cursor.fetchone()
+        
+        if not user or not check_password_hash(user[0], old_password):
+            return False
+        
+        # Update password
+        new_password_hash = generate_password_hash(new_password)
+        cursor.execute('''
+            UPDATE users 
+            SET password_hash = ?, updated_at = CURRENT_TIMESTAMP 
+            WHERE username = ?
+        ''', (new_password_hash, username))
+        
+        return True
+    
+    try:
+        return safe_db_operation(_change_password)
+    except Exception as e:
+        print(f"Error changing password: {e}")
+        return False
+
 # Authentication routes
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -350,49 +426,32 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
 
-        # Determine role automatically (no role field in form)
-        detected_role = None
-        if username == 'admin' and password == 'admin123':
-            detected_role = 'admin'
-        elif username == 'user' and password == 'user123':
-            detected_role = 'user'
+        # Authenticate user with database
+        user = authenticate_user(username, password)
 
         # Debug logging
-        print(f"Login attempt - Username: {username}, RoleDetected: {detected_role}")
+        print(f"Login attempt - Username: {username}, User: {user}")
         
-        # Simple authentication (in production, use proper password hashing)
-        if detected_role == 'admin':
-            session['user_id'] = 1
-            session['username'] = 'admin'
-            session['role'] = 'admin'
+        if user:
+            session['user_id'] = user['id']
+            session['username'] = user['username']
+            session['role'] = user['role']
             
-            print(f"Admin login successful - Session: {session}")
-            
-            # Log user login
-            try:
-                ip_address = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR'))
-                user_agent = request.environ.get('HTTP_USER_AGENT')
-                log_user_login('admin', 'admin', ip_address, user_agent)
-            except Exception as e:
-                print(f"Error logging admin login: {e}")
-            
-            return jsonify({'success': True, 'redirect_url': url_for('index')})
-        elif detected_role == 'user':
-            session['user_id'] = 2
-            session['username'] = 'user'
-            session['role'] = 'user'
-            
-            print(f"User login successful - Session: {session}")
+            print(f"Login successful - Session: {session}")
             
             # Log user login
             try:
                 ip_address = request.environ.get('HTTP_X_FORWARDED_FOR', request.environ.get('REMOTE_ADDR'))
                 user_agent = request.environ.get('HTTP_USER_AGENT')
-                log_user_login('user', 'user', ip_address, user_agent)
+                log_user_login(user['username'], user['role'], ip_address, user_agent)
             except Exception as e:
                 print(f"Error logging user login: {e}")
             
-            return jsonify({'success': True, 'redirect_url': url_for('user_dashboard')})
+            # Redirect based on role
+            if user['role'] == 'admin':
+                return jsonify({'success': True, 'redirect_url': url_for('index')})
+            else:
+                return jsonify({'success': True, 'redirect_url': url_for('user_dashboard')})
         else:
             print(f"Login failed - Username: {username}")
             return jsonify({'success': False, 'message': 'Invalid credentials'})
@@ -418,6 +477,36 @@ def logout():
     
     session.clear()
     return redirect(url_for('login'))
+
+@app.route('/change-password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    """Change password page"""
+    if request.method == 'POST':
+        old_password = request.form.get('old_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
+        
+        # Validate inputs
+        if not old_password or not new_password or not confirm_password:
+            return jsonify({'success': False, 'message': 'All fields are required'})
+        
+        if new_password != confirm_password:
+            return jsonify({'success': False, 'message': 'New passwords do not match'})
+        
+        if len(new_password) < 6:
+            return jsonify({'success': False, 'message': 'New password must be at least 6 characters long'})
+        
+        # Change password
+        username = session.get('username')
+        if change_user_password(username, old_password, new_password):
+            # Log password change activity
+            log_user_activity(username, 'password_changed', 'User changed their password')
+            return jsonify({'success': True, 'message': 'Password changed successfully'})
+        else:
+            return jsonify({'success': False, 'message': 'Current password is incorrect'})
+    
+    return render_template('change_password.html')
 
 @app.route('/user_dashboard')
 @user_required
@@ -1020,6 +1109,55 @@ def check_database():
             return jsonify({'success': False, 'message': 'Database has issues that could not be automatically fixed'})
     except Exception as e:
         return jsonify({'success': False, 'message': f'Database check failed: {str(e)}'})
+
+@app.route('/api/delete_bill/<path:bill_number>', methods=['DELETE'])
+@admin_required
+def delete_bill(bill_number):
+    """API endpoint to delete a bill (admin only)"""
+    try:
+        def _delete_bill(conn):
+            cursor = conn.cursor()
+            
+            # First check if bill exists
+            cursor.execute('SELECT id, total FROM bills WHERE bill_number = ?', (bill_number,))
+            bill = cursor.fetchone()
+            
+            if not bill:
+                return False, "Bill not found"
+            
+            bill_id, bill_total = bill
+            
+            # Delete the bill
+            cursor.execute('DELETE FROM bills WHERE bill_number = ?', (bill_number,))
+            
+            # Also delete from bill_sequence table if it exists
+            try:
+                cursor.execute('DELETE FROM bill_sequence WHERE bill_number = ?', (bill_number,))
+            except sqlite3.OperationalError:
+                # Table might not exist in older versions, ignore
+                pass
+            
+            return True, f"Bill {bill_number} deleted successfully"
+        
+        success, message = safe_db_operation(_delete_bill)
+        
+        if success:
+            # Log the deletion activity
+            if 'username' in session:
+                log_user_activity(
+                    session['username'], 
+                    'bill_deleted', 
+                    f'Deleted bill {bill_number}',
+                    bill_number
+                )
+            return jsonify({'success': True, 'message': message})
+        else:
+            return jsonify({'success': False, 'message': message})
+            
+    except Exception as e:
+        print(f"Error deleting bill {bill_number}: {e}")
+        return jsonify({'success': False, 'message': f'Error deleting bill: {str(e)}'})
+
 
 @app.route('/api/item_analysis')
 @admin_required

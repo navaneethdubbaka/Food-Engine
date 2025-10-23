@@ -58,7 +58,7 @@
                             {% for item in menu_items %}
                             <tr>
                                 <td>
-                                    <img src="{{ item.image if item.image else '/static/images/placeholder.svg' }}" 
+                                    <img src="{{ url_for('static', filename='images/' + item.image) if item.image else url_for('static', filename='images/placeholder.svg') }}" 
                                          alt="{{ item.name }}" 
                                          class="rounded" 
                                          style="width: 50px; height: 50px; object-fit: cover;"
@@ -79,12 +79,19 @@
                                 <td>
                                     <div class="btn-group" role="group">
                                         <button class="btn btn-outline-primary btn-sm" 
-                                                onclick="openEditItemModal({{ item.id }}, '{{ item.name }}', '{{ item.category }}', {{ item.price }}, '{{ item.description or '' }}')"
+                                                data-id="{{ item.id }}"
+                                                data-name="{{ item.name|e }}"
+                                                data-category="{{ item.category|e }}"
+                                                data-price="{{ item.price }}"
+                                                data-description="{{ (item.description or '')|e }}"
+                                                onclick="openEditItemModal(this.dataset.id, this.dataset.name, this.dataset.category, parseFloat(this.dataset.price), this.dataset.description)"
                                                 data-bs-toggle="tooltip" title="Edit">
                                             <i class="bi bi-pencil"></i>
                                         </button>
                                         <button class="btn btn-outline-danger btn-sm" 
-                                                onclick="openDeleteItemModal({{ item.id }}, '{{ item.name }}')"
+                                                data-id="{{ item.id }}"
+                                                data-name="{{ item.name|e }}"
+                                                onclick="openDeleteItemModal(this.dataset.id, this.dataset.name)"
                                                 data-bs-toggle="tooltip" title="Delete">
                                             <i class="bi bi-trash"></i>
                                         </button>
