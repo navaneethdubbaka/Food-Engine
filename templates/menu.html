@@ -152,7 +152,10 @@
                                     <option value="Pasta">Pasta</option>
                                     <option value="Burgers">Burgers</option>
                                     <option value="Sandwiches">Sandwiches</option>
+                                    <option value="Biriyani">Biriyani</option>
+                                    <option value="Fried Rice">Fried Rice</option>
                                     <option value="Other">Other</option>
+                                    <option value="Custom">Custom</option>
                                 </select>
                             </div>
                         </div>
@@ -183,6 +186,7 @@
                         <label for="add-item-description" class="form-label">Description</label>
                         <textarea class="form-control" id="add-item-description" name="description" rows="3"></textarea>
                     </div>
+                    <input type="text" class="form-control mt-2" id="add-custom-category" name="custom_category" placeholder="Enter custom category" style="display:none;">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -231,7 +235,10 @@
                                     <option value="Pasta">Pasta</option>
                                     <option value="Burgers">Burgers</option>
                                     <option value="Sandwiches">Sandwiches</option>
+                                    <option value="Biriyani">Biriyani</option>
+                                    <option value="Fried Rice">Fried Rice</option>
                                     <option value="Other">Other</option>
+                                    <option value="Custom">Custom</option>
                                 </select>
                             </div>
                         </div>
@@ -263,6 +270,7 @@
                         <label for="edit-item-description" class="form-label">Description</label>
                         <textarea class="form-control" id="edit-item-description" name="description" rows="3"></textarea>
                     </div>
+                    <input type="text" class="form-control mt-2" id="edit-custom-category" name="custom_category" placeholder="Enter custom category" style="display:none;">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -400,5 +408,19 @@ function showNoResultsMessage(count, filter) {
         noResultsMsg.remove();
     }
 }
+
+function handleAddCategoryChange() {
+  var select = document.getElementById('add-item-category');
+  var input = document.getElementById('add-custom-category');
+  input.style.display = (select.value === 'Other' || select.value === 'Custom') ? 'block' : 'none';
+}
+document.getElementById('add-item-category').addEventListener('change', handleAddCategoryChange);
+
+function handleEditCategoryChange() {
+  var select = document.getElementById('edit-item-category');
+  var input = document.getElementById('edit-custom-category');
+  input.style.display = (select.value === 'Other' || select.value === 'Custom') ? 'block' : 'none';
+}
+document.getElementById('edit-item-category').addEventListener('change', handleEditCategoryChange);
 </script>
 {% endblock %}

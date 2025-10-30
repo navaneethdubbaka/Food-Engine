@@ -537,6 +537,12 @@ async function addMenuItem() {
     const form = document.getElementById('addItemForm');
     const formData = new FormData(form);
     
+    const categorySelect = document.getElementById('add-item-category');
+    const customCategory = document.getElementById('add-custom-category');
+    if ((categorySelect.value === 'Other' || categorySelect.value === 'Custom') && customCategory.value.trim()) {
+      formData.set('category', customCategory.value.trim());
+    }
+    
     try {
         const response = await fetch('/api/add_menu_item', {
             method: 'POST',
@@ -564,6 +570,12 @@ async function updateMenuItem() {
     const form = document.getElementById('editItemForm');
     const formData = new FormData(form);
     const itemId = document.getElementById('edit-item-id').value;
+    
+    const editCategorySelect = document.getElementById('edit-item-category');
+    const editCustomCategory = document.getElementById('edit-custom-category');
+    if ((editCategorySelect.value === 'Other' || editCategorySelect.value === 'Custom') && editCustomCategory.value.trim()) {
+      formData.set('category', editCustomCategory.value.trim());
+    }
     
     try {
         const response = await fetch(`/api/update_menu_item/${itemId}`, {
