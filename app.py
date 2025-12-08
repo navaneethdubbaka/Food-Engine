@@ -593,6 +593,8 @@ def menu_management():
     """Menu management page"""
     conn = sqlite3.connect('database/restaurant.db')
     cursor = conn.cursor()
+    cursor.execute('SELECT DISTINCT category FROM menu ORDER BY category')
+    categories = [row[0] for row in cursor.fetchall()]
     cursor.execute('SELECT * FROM menu ORDER BY category, name')
     menu_items = cursor.fetchall()
     conn.close()
@@ -608,7 +610,7 @@ def menu_management():
             'description': item[5]
         })
     
-    return render_template('menu.html', menu_items=items)
+    return render_template('menu.html', menu_items=items, categories=categories)
 
 @app.route('/reports')
 @admin_required

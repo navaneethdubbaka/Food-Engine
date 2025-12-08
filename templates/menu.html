@@ -141,20 +141,9 @@
                                 <label for="add-item-category" class="form-label">Category *</label>
                                 <select class="form-select" id="add-item-category" name="category" required>
                                     <option value="">Select Category</option>
-                                    <option value="Starters">Starters</option>
-                                    <option value="Main Course">Main Course</option>
-                                    <option value="Desserts">Desserts</option>
-                                    <option value="Beverages">Beverages</option>
-                                    <option value="Appetizers">Appetizers</option>
-                                    <option value="Salads">Salads</option>
-                                    <option value="Soups">Soups</option>
-                                    <option value="Pizza">Pizza</option>
-                                    <option value="Pasta">Pasta</option>
-                                    <option value="Burgers">Burgers</option>
-                                    <option value="Sandwiches">Sandwiches</option>
-                                    <option value="Biriyani">Biriyani</option>
-                                    <option value="Fried Rice">Fried Rice</option>
-                                    <option value="Other">Other</option>
+                                    {% for category in categories %}
+                                    <option value="{{ category }}">{{ category }}</option>
+                                    {% endfor %}
                                     <option value="Custom">Custom</option>
                                 </select>
                             </div>
@@ -224,20 +213,9 @@
                                 <label for="edit-item-category" class="form-label">Category *</label>
                                 <select class="form-select" id="edit-item-category" name="category" required>
                                     <option value="">Select Category</option>
-                                    <option value="Starters">Starters</option>
-                                    <option value="Main Course">Main Course</option>
-                                    <option value="Desserts">Desserts</option>
-                                    <option value="Beverages">Beverages</option>
-                                    <option value="Appetizers">Appetizers</option>
-                                    <option value="Salads">Salads</option>
-                                    <option value="Soups">Soups</option>
-                                    <option value="Pizza">Pizza</option>
-                                    <option value="Pasta">Pasta</option>
-                                    <option value="Burgers">Burgers</option>
-                                    <option value="Sandwiches">Sandwiches</option>
-                                    <option value="Biriyani">Biriyani</option>
-                                    <option value="Fried Rice">Fried Rice</option>
-                                    <option value="Other">Other</option>
+                                    {% for category in categories %}
+                                    <option value="{{ category }}">{{ category }}</option>
+                                    {% endfor %}
                                     <option value="Custom">Custom</option>
                                 </select>
                             </div>
