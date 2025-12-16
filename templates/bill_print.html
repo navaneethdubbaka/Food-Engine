@@ -18,6 +18,7 @@
             color: #000;
             background: white;
             position: relative;
+            font-weight: bold;
         }
         
         /* Watermark removed */
@@ -85,8 +86,17 @@
         }
         
         .bill-date {
-            font-size: 12px;
+            font-size: 14px;
             color: #000;
+            font-weight: bold;
+        }
+        
+        .bill-time {
+            font-size: 14px;
+            color: #000;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 4px;
         }
         
         .bill-items {
@@ -278,6 +288,7 @@
             <div class="bill-number">Bill No: {{ bill.bill_number }}</div>
             <div class="bill-date">Date: <span id="bill-date">{{ bill.created_at[:10] }}</span></div>
         </div>
+        <div class="bill-time">Time: <span id="bill-time"></span></div>
         
         <div class="divider"></div>
         
@@ -316,17 +327,32 @@
     
     
     <script>
-        // Set bill date to current local date
-        (function setCurrentBillDate(){
+        // Set bill date and time to current local date/time (Indian format)
+        (function setCurrentBillDateTime(){
             try {
-                var el = document.getElementById('bill-date');
-                if (el) {
-                    var now = new Date();
+                var now = new Date();
+                
+                // Set date
+                var dateEl = document.getElementById('bill-date');
+                if (dateEl) {
                     var day = String(now.getDate()).padStart(2, '0');
                     var month = String(now.getMonth() + 1).padStart(2, '0');
                     var year = now.getFullYear();
-                    var formatted = day + '/' + month + '/' + year;
-                    el.textContent = formatted;
+                    var formattedDate = day + '/' + month + '/' + year;
+                    dateEl.textContent = formattedDate;
+                }
+                
+                // Set time in Indian format (12-hour with AM/PM)
+                var timeEl = document.getElementById('bill-time');
+                if (timeEl) {
+                    var hours = now.getHours();
+                    var minutes = String(now.getMinutes()).padStart(2, '0');
+                    var seconds = String(now.getSeconds()).padStart(2, '0');
+                    var ampm = hours >= 12 ? 'PM' : 'AM';
+                    hours = hours % 12;
+                    hours = hours ? hours : 12; // 0 becomes 12
+                    var formattedTime = String(hours).padStart(2, '0') + ':' + minutes + ':' + seconds + ' ' + ampm;
+                    timeEl.textContent = formattedTime;
                 }
             } catch(e) { /* ignore */ }
         })();
