@@ -1,0 +1,190 @@
+{% extends "base_login.html" %}
+
+{% block title %}Login - Sri Vengamamba Food Court{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center align-items-center min-vh-100">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow-lg border-0">
+                <div class="card-header text-center" style="background-color: var(--primary-color); color: white;">
+                    <h4 class="mb-0">
+                        <i class="bi bi-shield-lock me-2"></i>
+                        Sri Vengamamba Food Court
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" id="loginForm">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-person"></i>
+                                </span>
+                                <input type="text" class="form-control" id="username" name="username" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-lock"></i>
+                                </span>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                        </div>
+                        
+                        <!-- Role selection removed: role will be detected automatically on server -->
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>
+                                Login
+                            </button>
+                        </div>
+                        
+                        
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.min-vh-100 {
+    min-height: 100vh;
+}
+
+.card {
+    border-radius: 12px;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(192, 99, 45, 0.25);
+}
+
+/* Ensure password field is interactive */
+#password {
+    pointer-events: auto !important;
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+}
+
+/* Debug styling for password field */
+#password:focus {
+    outline: 2px solid #007bff !important;
+    outline-offset: 2px;
+}
+
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(192, 99, 45, 0.25);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Cache buster - Template updated at: {{ moment().format('YYYY-MM-DD HH:mm:ss') if moment else '2024-01-01 00:00:00' }}
+console.log('Login template loaded - Version 2.1 - No role validation');
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    const passwordField = document.getElementById('password');
+    
+    // Debug: Check if elements exist
+    console.log('Login form:', loginForm);
+    console.log('Password field:', passwordField);
+    console.log('Using MAIN templates/login.html - Template version: 2.0');
+    
+    // Test if password field is focusable
+    if (passwordField) {
+        passwordField.addEventListener('focus', function() {
+            console.log('Password field focused');
+        });
+        
+        passwordField.addEventListener('input', function() {
+            console.log('Password field input:', this.value);
+        });
+        
+        // Test form field values on page load
+        console.log('Initial username value:', document.getElementById('username').value);
+        console.log('Initial password value:', document.getElementById('password').value);
+    }
+    
+    if (loginForm) {
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Form submitted');
+            
+            const formData = new FormData(this);
+            const username = formData.get('username');
+            const password = formData.get('password');
+            
+            // Trim whitespace and check for empty values
+            const trimmedUsername = username ? username.trim() : '';
+            const trimmedPassword = password ? password.trim() : '';
+            
+            console.log('Form data:', { username, password });
+            console.log('Trimmed data:', { trimmedUsername, trimmedPassword });
+            console.log('Username length:', trimmedUsername.length);
+            console.log('Password length:', trimmedPassword.length);
+            
+            // Check if form data is being collected correctly - NEW VALIDATION
+            const isUsernameValid = trimmedUsername && trimmedUsername.length > 0;
+            const isPasswordValid = trimmedPassword && trimmedPassword.length > 0;
+            
+            console.log('Validation check - Username valid:', isUsernameValid, 'Password valid:', isPasswordValid);
+            
+            if (!isUsernameValid || !isPasswordValid) {
+                console.log('Validation failed - Username:', trimmedUsername, 'Password:', trimmedPassword);
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            console.log('Validation passed, sending request...');
+            
+            fetch('/login', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.success) {
+                    console.log('Login successful, redirecting to:', data.redirect_url);
+                    window.location.href = data.redirect_url;
+                } else {
+                    console.log('Login failed:', data.message);
+                    alert(data.message || 'Login failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Login failed. Please try again.');
+            });
+        });
+    }
+});
+
+</script>
+{% endblock %}

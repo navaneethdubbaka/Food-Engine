@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Billing - Sri Vengamamba Food Court{% endblock %}
+
+{% block content %}
+<div class="billing-container">
+    <!-- Left Sidebar - Menu Categories -->
+    <div class="menu-sidebar">
+        <div class="sidebar-header">
+            <h5 class="mb-0">
+                <i class="bi bi-menu-button-wide me-2"></i><span data-lang="billing.title">Menu Categories</span>
+            </h5>
+        </div>
+        <div class="sidebar-content">
+            {% if categories %}
+            <div class="category-list">
+                {% for category in categories %}
+                <div class="category-item" onclick="selectCategory('{{ category }}')" data-lang="category.{{ category.lower().replace(' ', '_') }}">
+                    <span>{{ category }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="bi bi-exclamation-circle text-muted" style="font-size: 2rem;"></i>
+                <p class="text-muted mt-2 small">No categories available</p>
+                <a href="{{ url_for('menu_management') }}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus me-1"></i>Add Menu Items
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Middle Section - Menu Items -->
+    <div class="menu-items-section">
+        <div class="menu-header">
+            <h5 class="mb-0">
+                <i class="bi bi-grid me-2"></i><span id="current-category-title">Select a Category</span>
+            </h5>
+        </div>
+        <div class="menu-content">
+            <!-- Universal Search Bar -->
+            <div class="search-container mb-3">
+                <div class="search-bar">
+                    <i class="bi bi-search search-icon"></i>
+                    <input type="text" id="menu-search" class="search-input" placeholder="Search all menu items..." onkeyup="searchAllItems()">
+                    <button class="search-clear" id="search-clear" onclick="clearSearch()" style="display: none;">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="menu-items-container" class="menu-items-grid">
+                <div class="text-center py-5">
+                    <i class="bi bi-hand-index text-muted" style="font-size: 3rem;"></i>
+                    <h5 class="text-muted mt-3">Select a category to view menu items</h5>
+                    <p class="text-muted">Choose a category from the left sidebar to start adding items to the bill.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Section - Bill Preview -->
+    <div class="bill-preview-section">
+        <div class="bill-header">
+            <h5 class="mb-0">
+                <i class="bi bi-receipt me-2"></i><span data-lang="billing.current_bill">Current Bill</span>
+            </h5>
+        </div>
+
+        <!-- Bill Items -->
+        <div id="bill-items" class="bill-items-container">
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-cart-x" style="font-size: 2rem;"></i>
+                <p class="mt-2" data-lang="billing.no_items">No items in bill</p>
+            </div>
+        </div>
+
+        <!-- Bill Totals -->
+        <div class="bill-totals">
+            <div class="bill-total-row">
+                <span data-lang="billing.subtotal">Subtotal:</span>
+                <span id="bill-subtotal">₹0.00</span>
+            </div>
+            <div class="bill-total-row">
+                <span><span data-lang="billing.tax">Tax</span> (<span id="tax-rate">0</span>%):</span>
+                <span id="bill-tax">₹0.00</span>
+            </div>
+            <div class="bill-total-row">
+                <span><span data-lang="billing.service_charge">Service Charge</span> (<span id="service-charge-rate">0</span>%):</span>
+                <span id="bill-service-charge">₹0.00</span>
+            </div>
+            <div class="bill-total-row bill-total-final">
+                <span data-lang="billing.total">Total:</span>
+                <span id="bill-total">₹0.00</span>
+            </div>
+        </div>
+
+        <!-- Bill Actions -->
+        <div class="bill-actions">
+            <button class="btn btn-primary btn-lg w-100 mb-2" onclick="generateBill()">
+                <i class="bi bi-printer me-2"></i><span data-lang="billing.generate_bill">Generate Bill</span>
+            </button>
+            <button class="btn btn-outline-secondary w-100" onclick="clearBill()">
+                <i class="bi bi-arrow-clockwise me-2"></i><span data-lang="billing.clear_bill">Clear Bill</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Bill Confirmation Modal -->
+<div class="modal fade" id="billConfirmationModal" tabindex="-1" aria-labelledby="billConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+                <h5 class="modal-title" id="billConfirmationModalLabel">
+                    <i class="bi bi-receipt-cutoff me-2"></i>Confirm Bill & Print
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="bill-preview-content">
+                    <h6 class="text-center mb-3">Bill Summary</h6>
+                    <div id="modal-bill-items" class="mb-3">
+                        <!-- Bill items will be inserted here -->
+                    </div>
+                    <hr>
+                    <div class="bill-totals-preview">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal:</span>
+                            <strong id="modal-subtotal">₹0.00</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Tax (<span id="modal-tax-rate">0</span>%):</span>
+                            <strong id="modal-tax">₹0.00</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Service Charge (<span id="modal-service-rate">0</span>%):</span>
+                            <strong id="modal-service-charge">₹0.00</strong>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <h5>Total:</h5>
+                            <h5 class="text-primary" id="modal-total">₹0.00</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>No, Cancel
+                </button>
+                <button type="button" class="btn btn-primary" onclick="confirmAndPrintBill()">
+                    <i class="bi bi-printer me-2"></i>Print Bill
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Initialize billing page
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-select first category if available
+    const firstCategory = document.querySelector('.category-chip');
+    if (firstCategory) {
+        firstCategory.click();
+    }
+});
+</script>
+{% endblock %}
